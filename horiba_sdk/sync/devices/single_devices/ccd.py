@@ -1,4 +1,3 @@
-from enum import Enum
 from types import TracebackType
 from typing import Any, Optional, final
 
@@ -8,9 +7,7 @@ from overrides import override
 from horiba_sdk.communication import Response
 from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.clean_count_mode import CleanCountMode
-from horiba_sdk.core.gain import GainType
 from horiba_sdk.core.resolution import Resolution
-from horiba_sdk.core.speed import SpeedType
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.icl_error import AbstractErrorDB
@@ -97,66 +94,53 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = super()._execute_command('ccd_getConfig', {'index': self._id})
         return response.results['configuration']
 
-    def get_gain(self, gain_type: GainType) -> Enum:
-        """Returns the gain of the CCD
-
-        .. todo:: gain_type is temporary, as soon as we know all device types, this will be internal
-
-        Args:
-            gain_type (GainType): GainType type of the specific CCD model (i.e. Gain.SyncerityOE)
+    def get_gain_token(self) -> int:
+        """Returns the current gain token.
 
         Returns:
-            GainType: The gain of the gain_type
+            int: Gain token of the ccd
 
         Raises:
             Exception: When an error occurred on the device side
         """
         response: Response = super()._execute_command('ccd_getGain', {'index': self._id})
         gain: int = int(response.results['token'])
-        for member in gain_type:
-            if member.value == gain:
-                return member
-        raise Exception(f'Gain {gain} not found in {gain_type} enum')
+        return gain
 
-    def set_gain(self, gain: GainType) -> None:
+    def set_gain(self, gain_token: int) -> None:
         """Sets the gain of the CCD
 
         Args:
-            gain (GainType): Gain
+            gain_token (int): Token of the desired gain
 
         Raises:
             Exception: When an error occurred on the device side
         """
-        super()._execute_command('ccd_setGain', {'index': self._id, 'token': gain.value})
+        super()._execute_command('ccd_setGain', {'index': self._id, 'token': gain_token})
 
-    def get_speed(self, speed_type: SpeedType) -> Enum:
-        """Returns the speed of the CCD
-
-        .. todo:: speed_type is temporary, as soon as we know all device types, this will be internal
+    def get_speed_token(self) -> int:
+        """Returns the speed token.
 
         Returns:
-            Speed: Speed model of the specific CCD model (i.e. Speed.SyncerityOE)
+            int: Speed token of the CCD.
 
         Raises:
             Exception: When an error occurred on the device side
         """
         response: Response = super()._execute_command('ccd_getSpeed', {'index': self._id})
-        speed: int = int(response.results['token'])
-        for member in speed_type:
-            if member.value == speed:
-                return member
-        raise Exception(f'Speed {speed} not found in {speed_type} enum')
+        speed_token: int = int(response.results['token'])
+        return speed_token
 
-    def set_speed(self, speed: SpeedType) -> None:
+    def set_speed(self, speed_token: int) -> None:
         """Sets the speed of the CCD
 
         Args:
-            speed (Speed): Speed
+            speed_token (int): Token of the desired speed.
 
         Raises:
             Exception: When an error occurred on the device side
         """
-        super()._execute_command('ccd_setSpeed', {'index': self._id, 'token': speed.value})
+        super()._execute_command('ccd_setSpeed', {'index': self._id, 'token': speed_token})
 
     def get_fit_parameters(self) -> list[int]:
         """Returns the fit parameters of the CCD

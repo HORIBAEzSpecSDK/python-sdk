@@ -4,8 +4,6 @@
 # Look at /test/conftest.py for the definition of fake_icl_exe
 
 from horiba_sdk.core.clean_count_mode import CleanCountMode
-from horiba_sdk.core.gain import Gain
-from horiba_sdk.core.speed import Speed
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 
@@ -41,10 +39,10 @@ def test_ccd_speed(fake_sync_icl_exe, fake_sync_device_manager):  # noqa: ARG001
     # act
     with fake_sync_device_manager.charge_coupled_devices[0] as ccd:
         # assert
-        speed = ccd.get_speed(Speed.SyncerityOE)
+        speed = ccd.get_speed_token()
 
         # assert
-        assert speed == Speed.SyncerityOE._45_KHZ
+        assert speed == 0
 
 
 def test_ccd_gain(fake_sync_icl_exe, fake_sync_device_manager):  # noqa: ARG001
@@ -52,11 +50,10 @@ def test_ccd_gain(fake_sync_icl_exe, fake_sync_device_manager):  # noqa: ARG001
     # act
     with fake_sync_device_manager.charge_coupled_devices[0] as ccd:
         # assert
-        gain = ccd.get_gain(Gain.SyncerityOE)
+        gain = ccd.get_gain_token()
 
         # assert
-        assert gain == Gain.SyncerityOE.HIGH_LIGHT
-        assert gain != Gain.SynapsePlus.ULTIMATE_SENSITIVITY
+        assert gain == 0
 
 
 def test_ccd_fit_params(fake_sync_icl_exe, fake_sync_device_manager):  # noqa: ARG001

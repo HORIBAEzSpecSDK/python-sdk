@@ -9,8 +9,6 @@ from loguru import logger
 
 from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.clean_count_mode import CleanCountMode
-from horiba_sdk.core.gain import Gain
-from horiba_sdk.core.speed import Speed
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.sync.devices import DeviceManager
@@ -44,7 +42,7 @@ def test_ccd_functionality(device_manager_instance):  # noqa: ARG001
         temperature = ccd.get_temperature()
         assert temperature < 0
 
-        _ignored_speed = ccd.get_speed(Speed.SyncerityOE)
+        _ignored_speed = ccd.get_speed()
 
         ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
         ccd.set_region_of_interest()
@@ -81,36 +79,38 @@ def test_ccd_opens(device_manager_instance):  # noqa: ARG001
 def test_ccd_gain(device_manager_instance):  # noqa: ARG001
     # arrange
     with device_manager_instance.charge_coupled_devices[0] as ccd:
-        # act
-        ccd.set_gain(Gain.SyncerityOE.HIGH_SENSITIVITY)
-        gain_before = ccd.get_gain(Gain.SyncerityOE)
+        gain_token_before = 0
+        gain_token_after = 1
 
-        ccd.set_gain(Gain.SyncerityOE.HIGH_LIGHT)
-        gain_after = ccd.get_gain(Gain.SyncerityOE)
+        # act
+        ccd.set_gain(gain_token_before)
+        gain_before = ccd.get_gain_token()
+
+        ccd.set_gain(gain_token_after)
+        gain_after = ccd.get_gain_token()
 
         # assert
-        assert gain_before == Gain.SyncerityOE.HIGH_SENSITIVITY
-        assert gain_after == Gain.SyncerityOE.HIGH_LIGHT
-        assert gain_before != Gain.SynapsePlus.ULTIMATE_SENSITIVITY
-        assert gain_after != Gain.SynapsePlus.ULTIMATE_SENSITIVITY
+        assert gain_before == gain_token_before
+        assert gain_after == gain_token_after
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 def test_ccd_speed(device_manager_instance):  # noqa: ARG001
     # arrange
     with device_manager_instance.charge_coupled_devices[0] as ccd:
-        # act
-        ccd.set_speed(Speed.SyncerityOE._45_KHZ)
-        speed_before = ccd.get_speed(Speed.SyncerityOE)
+        speed_token_before = 0
+        speed_token_after = 1
 
-        ccd.set_speed(Speed.SyncerityOE._1_MHZ)
-        speed_after = ccd.get_speed(Speed.SyncerityOE)
+        # act
+        ccd.set_speed(speed_token_before)
+        speed_before = ccd.get_speed_token()
+
+        ccd.set_speed(speed_token_after)
+        speed_after = ccd.get_speed_token()
 
         # assert
-        assert speed_before == Speed.SyncerityOE._45_KHZ
-        assert speed_before != Speed.SynapsePlus._50_KHZ_HS
-        assert speed_after == Speed.SyncerityOE._1_MHZ
-        assert speed_after != Speed.SynapsePlus._50_KHZ_HS
+        assert speed_before == speed_token_before
+        assert speed_after == speed_token_after
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')

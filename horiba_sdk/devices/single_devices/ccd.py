@@ -1,4 +1,3 @@
-from enum import Enum
 from types import TracebackType
 from typing import Any, Optional, final
 
@@ -8,9 +7,7 @@ from overrides import override
 from horiba_sdk.communication import AbstractCommunicator, Response
 from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.clean_count_mode import CleanCountMode
-from horiba_sdk.core.gain import GainType
 from horiba_sdk.core.resolution import Resolution
-from horiba_sdk.core.speed import SpeedType
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.icl_error import AbstractErrorDB
@@ -94,66 +91,69 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = await super()._execute_command('ccd_getConfig', {'index': self._id})
         return response.results['configuration']
 
-    async def get_gain(self, gain_type: GainType) -> Enum:
-        """Returns the gain of the CCD
+    async def get_gain_token(self) -> int:
+        """Returns the current gain token.
 
-        .. todo:: gain_type is temporary, as soon as we know all device types, this will be internal
-
-        Args:
-            gain_type (GainType): GainType type of the specific CCD model (i.e. Gain.SyncerityOE)
+        .. note:: The CCD can have different sensors installed, which can have different gain values. This is why only
+        the token to the gain is returned. You need to first check what gain values are available for the CCD using the
+        get_configuration function. Please see the according "Gain and Speed" documentation.
 
         Returns:
-            GainType: The gain of the gain_type
+            int: Gain token of the ccd
 
         Raises:
             Exception: When an error occurred on the device side
         """
         response: Response = await super()._execute_command('ccd_getGain', {'index': self._id})
         gain: int = int(response.results['token'])
-        for member in gain_type:
-            if member.value == gain:
-                return member
-        raise Exception(f'Gain {gain} not found in {gain_type} enum')
+        return gain
 
-    async def set_gain(self, gain: GainType) -> None:
-        """Sets the gain of the CCD
+    async def set_gain(self, gain_token: int) -> None:
+        """Sets the gain of the CCD.
+
+        .. note:: The CCD can have different sensors installed, which can have different gain values. Therefore you need
+        to first check what gain values are available for the CCD using the get_configuration function. Please see the
+        according "Gain and Speed" documentation.
 
         Args:
-            gain (GainType): Gain
+            gain_token (int): Token of the desired gain
 
         Raises:
             Exception: When an error occurred on the device side
         """
-        await super()._execute_command('ccd_setGain', {'index': self._id, 'token': gain.value})
+        await super()._execute_command('ccd_setGain', {'index': self._id, 'token': gain_token})
 
-    async def get_speed(self, speed_type: SpeedType) -> Enum:
-        """Returns the speed of the CCD
+    async def get_speed_token(self) -> int:
+        """Returns the speed token.
 
-        .. todo:: speed_type is temporary, as soon as we know all device types, this will be internal
+        .. note:: The CCD can have different sensors installed, which can have different speed values. This is why only
+        the token to the speed is returned. You need to first check what speed values are available for the CCD using
+        the get_configuration function. Please see the according "Gain and Speed" documentation.
 
         Returns:
-            Speed: Speed model of the specific CCD model (i.e. Speed.SyncerityOE)
+            int: Speed token of the CCD.
 
         Raises:
             Exception: When an error occurred on the device side
         """
         response: Response = await super()._execute_command('ccd_getSpeed', {'index': self._id})
-        speed: int = int(response.results['token'])
-        for member in speed_type:
-            if member.value == speed:
-                return member
-        raise Exception(f'Speed {speed} not found in {speed_type} enum')
+        speed_token: int = int(response.results['token'])
+        return speed_token
 
-    async def set_speed(self, speed: SpeedType) -> None:
+    async def set_speed(self, speed_token: int) -> None:
         """Sets the speed of the CCD
 
+        .. note:: The CCD can have different sensors installed, which can have different speed values. Therefore you
+        need to first check what speed values are available for the CCD using the get_configuration function. Please
+        see the according "Gain and Speed" documentation.
+
         Args:
-            speed (Speed): Speed
+            speed_token (int): Token of the desired speed.
 
         Raises:
             Exception: When an error occurred on the device side
         """
-        await super()._execute_command('ccd_setSpeed', {'index': self._id, 'token': speed.value})
+        await super()._execute_command('ccd_setSpeed', {'index': self._id, 'token': speed_token})
 
     async def get_fit_parameters(self) -> list[int]:
         """Returns the fit parameters of the CCD

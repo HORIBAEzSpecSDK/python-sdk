@@ -20,3 +20,4 @@ Contents
    usage
    examples
    icl_api
+   gain_speed

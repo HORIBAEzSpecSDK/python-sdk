@@ -3,7 +3,6 @@ import random
 
 from loguru import logger
 
-from horiba_sdk.core.speed import Speed
 from horiba_sdk.devices.device_manager import DeviceManager
 
 
@@ -27,7 +26,7 @@ async def main():
         chip_temperature = await ccd.get_temperature()
         logger.info(f'Chip temperature: {chip_temperature}')
 
-        speed = await ccd.get_speed(Speed.SyncerityOE)
+        speed = await ccd.get_speed()
         logger.info(f'Speed: {speed}')
 
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
