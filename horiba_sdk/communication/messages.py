@@ -26,7 +26,9 @@ class Command:
         self.command = command
         self.parameters = parameters
 
+
     def json(self) -> str:
+
         """Converts the command object to a JSON string."""
         return json.dumps({'id': self.id, 'command': self.command, 'parameters': self.parameters})
 

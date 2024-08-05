@@ -8,5 +8,6 @@ class TimerResolution(Enum):
     .. note:: The timer resolution value of 1 microsecond is not supported by all CCDs.
     """
 
-    _1000_MICROSECONDS = 0
-    _1_MICROSECOND = 1
+    MILLISECONDS = 0
+    MICROSECONDS = 1
+    NOTHING_EVAL = 2
