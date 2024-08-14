@@ -1,6 +1,6 @@
 from enum import Enum
 from types import TracebackType
-from typing import Any, Optional, final
+from typing import Any, List, Optional, final
 
 import pint
 from loguru import logger
@@ -91,6 +91,7 @@ class ChargeCoupledDevice(AbstractDevice):
         """
         await super().open()
         await super()._execute_command('ccd_open', {'index': self._id})
+        self._config: dict[str, Any] = await self.get_configuration()
 
     @override
     async def close(self) -> None:
@@ -490,3 +491,52 @@ class ChargeCoupledDevice(AbstractDevice):
             response: Response = await super()._execute_command(str(command), params_dict)
             #response : Response = await super()._execute_command(str(command), {'index' : self._id, (parameters[0]): (parameter_values[0])})
         return response
+
+    async def set_center_wavelength(self, center_wavelength: float) -> None:
+        """Sets the center wavelength value to be used in the grating equation.
+
+        Used when X axis conversion is XAxisConversionType.FROM_ICL_SETTINGS_INI
+
+        Args:
+            center_wavelength (float): Center wavelength
+
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        await super()._execute_command(
+            'ccd_setCenterWavelength',
+            {'index': self._id, 'wavelength': center_wavelength},
+        )
+
+    async def range_mode_center_wavelengths(
+        self, monochromator_index: int, start_wavelength: float, end_wavelength: float, pixel_overlap: int
+    ) -> List[float]:
+        """Finds the center wavelength positions based on the input range and pixel overlap.
+
+        The following commands are prerequisites and should be called prior to using this command:
+        - :func:`ChargeCoupledDevice.set_x`,
+        - :func:`ChargeCoupledDevice.ccd_setAcqFormat`,
+        - :func:`ChargeCoupledDevice.ccd_setRoi`
+
+        Args:
+            monochromator_index (int): Index of the monochromator that is connected to the setup
+            start_wavelength (float): Start wavelength
+            end_wavelength (float): End wavelength
+            pixel_overlap (int): Overlap size in pixels between the scans.
+
+        Returns:
+            List[float]: List of center wavelength positions to cover the desired range.
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        response: Response = await super()._execute_command(
+            'ccd_calculateRangeModePositions',
+            {
+                'index': self._id,
+                'monoIndex': monochromator_index,
+                'start': start_wavelength,
+                'end': end_wavelength,
+                'overlap': pixel_overlap,
+            },
+        )
+        return response.results['centerWavelengths']

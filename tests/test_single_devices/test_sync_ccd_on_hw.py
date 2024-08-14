@@ -11,26 +11,15 @@ from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.clean_count_mode import CleanCountMode
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
-from horiba_sdk.sync.devices import DeviceManager
-
-
-@pytest.fixture(scope='module')
-def device_manager_instance():
-    device_manager = DeviceManager(start_icl=True)
-
-    device_manager.start()
-
-    yield device_manager
-
-    device_manager.stop()
+from horiba_sdk.sync.devices.single_devices.monochromator import Monochromator
 
 
 # Tell pytest to run this test only if called from the scope of this module. If any other pytest scope calls this test,
 # ignore it
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_functionality(device_manager_instance):  # noqa: ARG001
+def test_ccd_functionality(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         # act
         chip_size = ccd.get_chip_size()
         assert chip_size.width > 0 and chip_size.height > 0
@@ -66,9 +55,9 @@ def test_ccd_functionality(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_opens(device_manager_instance):  # noqa: ARG001
+def test_ccd_opens(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         # act
         is_open = ccd.is_open()
         # assert
@@ -76,9 +65,9 @@ def test_ccd_opens(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_gain(device_manager_instance):  # noqa: ARG001
+def test_ccd_gain(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         gain_token_before = 0
         gain_token_after = 1
 
@@ -95,9 +84,9 @@ def test_ccd_gain(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_speed(device_manager_instance):  # noqa: ARG001
+def test_ccd_speed(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         speed_token_before = 0
         speed_token_after = 1
 
@@ -114,9 +103,9 @@ def test_ccd_speed(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_resolution(device_manager_instance):  # noqa: ARG001
+def test_ccd_resolution(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         # act
         resolution = ccd.get_chip_size()
         config = ccd.get_configuration()
@@ -127,9 +116,9 @@ def test_ccd_resolution(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_temperature(device_manager_instance):  # noqa: ARG001
+def test_ccd_temperature(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         # act
         temperature = ccd.get_temperature()
 
@@ -138,9 +127,9 @@ def test_ccd_temperature(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_fit_parameters(device_manager_instance):  # noqa: ARG001
+def test_ccd_fit_parameters(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         expected_fit_params_before = [1, 0, 0, 0, 0]
         expected_fit_params_after = [0, 0, 1, 0, 0]
 
@@ -157,9 +146,9 @@ def test_ccd_fit_parameters(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_timer_resolution(device_manager_instance):  # noqa: ARG001
+def test_ccd_timer_resolution(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         expected_timer_resolution_before = TimerResolution._1_MICROSECOND
         expected_timer_resolution_after = TimerResolution._1000_MICROSECONDS
 
@@ -176,9 +165,9 @@ def test_ccd_timer_resolution(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_exposure_time(device_manager_instance):  # noqa: ARG001
+def test_ccd_exposure_time(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
         expected_exposure_time_before = 100
         expected_exposure_time_after = 110
@@ -196,9 +185,9 @@ def test_ccd_exposure_time(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_roi(device_manager_instance):  # noqa: ARG001
+def test_ccd_roi(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         ccd.set_exposure_time(100)
         ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
         # act
@@ -227,9 +216,9 @@ def test_ccd_roi(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_x_axis_conversion_type(device_manager_instance):  # noqa: ARG001
+def test_ccd_x_axis_conversion_type(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         expected_x_axis_conversion_type_before = XAxisConversionType.NONE
         expected_x_axis_conversion_type_after = XAxisConversionType.FROM_CCD_FIRMWARE
 
@@ -245,9 +234,9 @@ def test_ccd_x_axis_conversion_type(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_acquisition_count(device_manager_instance):  # noqa: ARG001
+def test_ccd_acquisition_count(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         expected_acquisition_count_before = 1
         expected_acquisition_count_after = 2
 
@@ -264,9 +253,9 @@ def test_ccd_acquisition_count(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_clean_count(device_manager_instance):  # noqa: ARG001
+def test_ccd_clean_count(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         expected_clean_count_before = 1
         expected_clean_count_after = 2
 
@@ -283,9 +272,9 @@ def test_ccd_clean_count(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_trigger_in(device_manager_instance):  # noqa: ARG001
+def test_ccd_trigger_in(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         expected_trigger_input_before = (False, -1, -1, -1)
         (
             expected_enabled_before,
@@ -319,9 +308,9 @@ def test_ccd_trigger_in(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_signal_out(device_manager_instance):  # noqa: ARG001
+def test_ccd_signal_out(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         expected_signal_output_before = (False, -1, -1, -1)
         (
             expected_enabled_before,
@@ -355,8 +344,8 @@ def test_ccd_signal_out(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_acquisition_abort(device_manager_instance):  # noqa: ARG001
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+def test_ccd_acquisition_abort(sync_device_manager_instance):  # noqa: ARG001
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         # act
         ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
         ccd.set_exposure_time(10000)
@@ -378,9 +367,9 @@ def test_ccd_acquisition_abort(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_ccd_restart(device_manager_instance):  # noqa: ARG001
+def test_ccd_restart(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.charge_coupled_devices[0] as ccd:
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         is_open_before = ccd.is_open()
 
         # act
@@ -390,3 +379,29 @@ def test_ccd_restart(device_manager_instance):  # noqa: ARG001
 
         assert is_open_before
         assert is_open_after
+
+
+def wait_mono(mono: Monochromator) -> None:
+    time.sleep(0.2)
+    while mono.is_busy():
+        time.sleep(0.2)
+
+
+@pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
+def test_ccd_range_mode_positions(sync_device_manager_instance):  # noqa: ARG001
+    # arrange
+    start_wavelength = 200
+    end_wavelength = 500
+
+    mono = sync_device_manager_instance.monochromators[0]
+    with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
+        # act
+        mono.open()
+        wait_mono(mono)
+
+        ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
+        ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
+        ccd.set_region_of_interest()
+
+        center_wavelengths = ccd.range_mode_center_wavelengths(mono.id(), start_wavelength, end_wavelength, 10)
+        assert center_wavelengths

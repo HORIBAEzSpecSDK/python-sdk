@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "horiba-sdk"
-version = "0.3.5"
+version = "0.4.0"
 description = "'horiba-sdk' is a package that provides source code for the development with Horiba devices"
 readme = "README.md"
 authors = ["ZühlkeEngineering <nikolaus.naredi-rainer@zuehlke.com>"]

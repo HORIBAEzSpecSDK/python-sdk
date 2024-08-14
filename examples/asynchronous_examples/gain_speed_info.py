@@ -18,8 +18,8 @@ async def main():
     await device_manager.stop()
 
     print('------ Configuration ------')
-    print(f'Gains: {configuration["Gains"]}')
-    print(f'Speeds: {configuration["Speeds"]}')
+    print(f'Gains: {configuration["gains"]}')
+    print(f'Speeds: {configuration["speeds"]}')
 
 
 if __name__ == '__main__':

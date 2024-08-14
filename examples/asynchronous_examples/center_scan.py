@@ -4,10 +4,9 @@ import asyncio
 import matplotlib.pyplot as plt
 from loguru import logger
 
-from horiba_sdk.core.acquisition_format import AcquisitionFormat
-from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.devices.device_manager import DeviceManager
+from horiba_sdk.devices.single_devices.monochromator import Monochromator
 
 
 async def main():
@@ -30,6 +29,8 @@ async def main():
         # mono initialization
         await mono.home()
         await wait_for_mono(mono)
+        await mono.set_turret_grating(Monochromator.Grating.THIRD)
+        await wait_for_mono(mono)
 
         target_wavelength = 585.25
         await mono.move_to_target_wavelength(target_wavelength)
@@ -39,13 +40,16 @@ async def main():
 
 
         # ccd configuration
-        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
         await ccd.set_acquisition_count(1)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
         await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
         await ccd.set_exposure_time(500)
+        await ccd.set_speed(2)  # 1 MHz Ultra
+        # await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
+        # await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
         await ccd.set_center_wavelength(target_wavelength)
+
         xy_data = [[0], [0]]
 
         if await ccd.get_acquisition_ready():
@@ -75,6 +79,8 @@ async def main():
 
             # for AcquisitionFormat.IMAGE:
             # xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData'][0]]
+        else:
+            raise Exception('CCD not ready for acquisition')
     finally:
         await ccd.close()
         logger.info('Waiting before closing Monochromator')

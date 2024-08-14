@@ -5,43 +5,31 @@ import time
 
 import pytest
 
-from horiba_sdk.sync.devices import DeviceManager
 from horiba_sdk.sync.devices.single_devices import Monochromator
 
 
-@pytest.fixture(scope='module')
-def device_manager_instance():
-    device_manager = DeviceManager(start_icl=True)
-
-    device_manager.start()
-
-    yield device_manager
-
-    device_manager.stop()
-
-
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_opens(device_manager_instance):
+def test_monochromator_opens(sync_device_manager_instance):
     # arrange
     # act
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         # assert
         assert monochromator.is_open() is True
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_busy(device_manager_instance):
+def test_monochromator_busy(sync_device_manager_instance):
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         # act
         # assert
         assert monochromator.is_busy() is False
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_init(device_manager_instance):
+def test_monochromator_init(sync_device_manager_instance):
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         # act
         monochromator.home()
 
@@ -54,9 +42,9 @@ def test_monochromator_init(device_manager_instance):
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_config(device_manager_instance):  # noqa: ARG001
+def test_monochromator_config(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         # act
         config = monochromator.configuration()
 
@@ -66,9 +54,9 @@ def test_monochromator_config(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_wavelength(device_manager_instance):
+def test_monochromator_wavelength(sync_device_manager_instance):
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         # act
         monochromator.move_to_target_wavelength(100)
 
@@ -81,9 +69,9 @@ def test_monochromator_wavelength(device_manager_instance):
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_calibrate_wavelength(device_manager_instance):
+def test_monochromator_calibrate_wavelength(sync_device_manager_instance):
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         # act
         # TODO: How to test this properly???
         # monochromator.calibrate_wavelength(350)
@@ -94,9 +82,9 @@ def test_monochromator_calibrate_wavelength(device_manager_instance):
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_turret_grating_position(device_manager_instance):
+def test_monochromator_turret_grating_position(sync_device_manager_instance):
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         expected_grating = Monochromator.Grating.FIRST
 
         # act
@@ -114,9 +102,9 @@ def test_monochromator_turret_grating_position(device_manager_instance):
 
 # Note: Filter wheel not available on our mono
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_filter_wheel(device_manager_instance):  # noqa: ARG001
+def test_monochromator_filter_wheel(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         filter_wheel = Monochromator.FilterWheel.SECOND
         expected_filter_wheel_position_before = Monochromator.FilterWheelPosition.RED
         expected_filter_wheel_position_after = Monochromator.FilterWheelPosition.GREEN
@@ -140,9 +128,9 @@ def test_monochromator_filter_wheel(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_mirror(device_manager_instance):  # noqa: ARG001
+def test_monochromator_mirror(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         expected_mirror_position_before = Monochromator.MirrorPosition.LATERAL
         expected_mirror_position_after = Monochromator.MirrorPosition.AXIAL
 
@@ -167,9 +155,9 @@ def test_monochromator_mirror(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_slit(device_manager_instance):  # noqa: ARG001
+def test_monochromator_slit(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         monochromator.home()
         while monochromator.is_busy():
             time.sleep(1)
@@ -197,9 +185,9 @@ def test_monochromator_slit(device_manager_instance):  # noqa: ARG001
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_shutter(device_manager_instance):
+def test_monochromator_shutter(sync_device_manager_instance):
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         expected_shutter_position_before = Monochromator.ShutterPosition.CLOSED
         expected_shutter_position_after = Monochromator.ShutterPosition.OPENED
 
@@ -216,9 +204,9 @@ def test_monochromator_shutter(device_manager_instance):
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-def test_monochromator_slit_step_position(device_manager_instance):  # noqa: ARG001
+def test_monochromator_slit_step_position(sync_device_manager_instance):  # noqa: ARG001
     # arrange
-    with device_manager_instance.monochromators[0] as monochromator:
+    with sync_device_manager_instance.monochromators[0] as monochromator:
         monochromator.home()
         while monochromator.is_busy():
             time.sleep(1)

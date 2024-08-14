@@ -39,6 +39,13 @@ ___
 * Python `>=3.9`
 * ICL.exe installed as part of the Horiba SDK, licensed and activated
 
+  <details>
+  <summary>To make sure that the USB devices do not get disconnected, uncheck the following boxes in the properties</summary>
+
+  ![generic usb hub properties](docs/source/images/generic_usb_hub_properties.png)
+
+  </details>
+
 ## 🛠️ Usage
 
 <details>
@@ -311,6 +318,9 @@ Windows:
 
 ```powershell
 $env:HAS_HARDWARE="true"
+# If you want a remote ICL be used for the tests
+# $env:TEST_ICL_IP="192.168.21.24"
+# $env:TEST_ICL_PORT="1234"
 poetry run pytest -c pyproject.toml --cov-report=html --cov=horiba_sdk tests/
 ```
 
@@ -318,6 +328,9 @@ Unix:
 
 ```bash
 HAS_HARDWARE="true"
+# If you want a remote ICL be used for the tests
+# TEST_ICL_IP="192.168.21.24"
+# TEST_ICL_PORT="1234"
 make test
 ```
 

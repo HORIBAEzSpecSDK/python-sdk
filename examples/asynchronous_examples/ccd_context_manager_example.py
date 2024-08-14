@@ -26,8 +26,8 @@ async def main():
         chip_temperature = await ccd.get_temperature()
         logger.info(f'Chip temperature: {chip_temperature}')
 
-        speed = await ccd.get_speed()
-        logger.info(f'Speed: {speed}')
+        speed = await ccd.get_speed_token()
+        logger.info(f'Speed token: {speed}')
 
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
         if await ccd.get_acquisition_ready():
