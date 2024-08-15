@@ -4,6 +4,16 @@ from typing import final
 
 @final
 class AcquisitionFormat(Enum):
+    """Formats for the acquisition.
+
+    Attributes:
+        SPECTRA: X axis in nm, Y axis in counts
+        IMAGE: X axis in pixels, Y axis in counts
+        CROP: TBD
+        FAST_KINETICS: TBD
+
+    """
+
     SPECTRA = 0
     IMAGE = 1
     CROP = 2

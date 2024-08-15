@@ -19,8 +19,8 @@ from .abstract_device import AbstractDevice
 class ChargeCoupledDevice(AbstractDevice):
     """Charge Coupled Device
 
-    This class should not be instanced by the end user. Instead, the :class:`horiba_sdk.devices.DeviceManager`
-    should be used to access the detected CCDs on the system.
+    This class should not be instanced by the end user. Instead, the
+    :class:`horiba_sdk.devices.device_manager.DeviceManager` should be used to access the detected CCDs on the system.
     """
 
     def __init__(self, device_id: int, communicator: AbstractCommunicator, error_db: AbstractErrorDB) -> None:
@@ -269,10 +269,7 @@ class ChargeCoupledDevice(AbstractDevice):
 
     async def set_x_axis_conversion_type(self, conversion_type: XAxisConversionType) -> None:
         """Sets the X-axis pixel conversion type to be used when retrieving the acquisition data with the
-        ccd_getAcquisitionData command.
-        0 = None (default)
-        1 = CCD FIT parameters contained in the CCD firmware
-        2 = Mono Wavelength parameters contained in the icl_settings.ini file
+        :func:`ChargeCoupledDevice.get_acquisition_data` command.
 
         Args:
             conversion_type (XAxisConversionType): Conversion type Integer. The X-axis pixel conversion type to be used.
@@ -282,9 +279,9 @@ class ChargeCoupledDevice(AbstractDevice):
 
     async def get_x_axis_conversion_type(self) -> XAxisConversionType:
         """Gets the conversion type of the x axis.
-        0 = None (default)
-        1 = CCD FIT parameters contained in the CCD firmware
-        2 = Mono Wavelength parameters contained in the icl_settings.ini file
+
+        Returns:
+            XAxisConversionType: The conversion type of the x axis.
         """
         response: Response = await super()._execute_command('ccd_getXAxisConversionType', {'index': self._id})
         return XAxisConversionType(response.results['type'])
@@ -321,6 +318,7 @@ class ChargeCoupledDevice(AbstractDevice):
 
     async def set_clean_count(self, count: int, mode: CleanCountMode) -> None:
         """Sets the clean count mode of the CCD and the according mode
+
         Args:
             count (int): The number of acquisitions to be performed.
             mode (CleanCountMode): The mode of the clean count
@@ -379,16 +377,19 @@ class ChargeCoupledDevice(AbstractDevice):
         return exposure
 
     async def set_exposure_time(self, exposure_time: int) -> None:
-        """Sets the exposure time in timer resolution units
+        """Sets the exposure time in timer resolution units (us or ms)
 
         Examples:
-        - If exposure_time is set to 50, and the timer resolution value is milliseconds, the CCD exposure time
+
+        - If exposure_time is set to 50, and the timer resolution value,
+          :class:`horiba_sdk.core.timer_resolution.TimerResolution`, is `MILLISECONDS`, the CCD exposure time
           (integration time) = 50 milliseconds.
-        - If exposure_time is set to 50, and the timer resolution value is microseconds, the CCD exposure time
+        - If exposure_time is set to 50, and the timer resolution value,
+          :class:`horiba_sdk.core.timer_resolution.TimerResolution`, is `MICROSECONDS`, the CCD exposure time
           (integration time) = 50 microseconds.
 
         Args:
-            exposure_time (int): Exposure time in timer resolution units (ms or us)
+            exposure_time (int): Exposure time in timer resolution units (1us or 1000us)
         Raises:
             Exception: When an error occurred on the device side
         """
@@ -406,13 +407,13 @@ class ChargeCoupledDevice(AbstractDevice):
 
         Returns:
             Tuple[bool, int, int, int]:
-                enabled: Specifies if the signal is enabled (e.g. False = Disabled),
-                address: used to specify where the trigger is located. (e.g. 0 = Trigger Input).
-                         Note: Value of -1 indicates that the input trigger is disabled,
-                event: used to specify when the trigger event should occur. (e.g. 0 = Once - Start All)
-                       Note: Value of -1 indicates that the input trigger is disabled,
-                signal type: used to specify how the signal will cause the input trigger. (e.g. 0 = TTL Falling Edge)
-                       Note: Value of -1 indicates that the input trigger is disabled,
+                - enabled: Specifies if the signal is enabled (e.g. False = Disabled),
+                - address: used to specify where the trigger is located. (e.g. 0 = Trigger Input).
+                  Note: Value of -1 indicates that the input trigger is disabled,
+                - event: used to specify when the trigger event should occur. (e.g. 0 = Once - Start All)
+                  Note: Value of -1 indicates that the input trigger is disabled,
+                - signal type: used to specify how the signal will cause the input trigger. (e.g. 0 = TTL Falling Edge)
+                  Note: Value of -1 indicates that the input trigger is disabled,
 
         Raises:
             Exception: When an error occurred on the device side
@@ -484,13 +485,13 @@ class ChargeCoupledDevice(AbstractDevice):
 
         Returns:
             Tuple[bool, int, int, int]:
-                enabled: Specifies if the signal is enabled (e.g. False = Disabled),
-                address: Used to specify where the signal is located (e.g. 0 = Signal Output),
-                         Note: Value of -1 indicates that the signal output is disabled,
-                event: Used to specify when the signal event should occur. (e.g. 3 = Shutter Open)
-                       Note: Value of -1 indicates that the signal output is disabled,
-                signal type: how the signal will cause the event. (e.g. 0 = TTL Active High)
-                       Note: Value of -1 indicates that the signal output is disabled,
+                - enabled: Specifies if the signal is enabled (e.g. False = Disabled),
+                - address: Used to specify where the signal is located (e.g. 0 = Signal Output),
+                  Note: Value of -1 indicates that the signal output is disabled,
+                - event: Used to specify when the signal event should occur. (e.g. 3 = Shutter Open)
+                  Note: Value of -1 indicates that the signal output is disabled,
+                - signal type: how the signal will cause the event. (e.g. 0 = TTL Active High)
+                  Note: Value of -1 indicates that the signal output is disabled,
 
         Raises:
             Exception: When an error occurred on the device side
@@ -587,6 +588,7 @@ class ChargeCoupledDevice(AbstractDevice):
         """Retrieves data from the last acquisition.
 
         The acquisition description string consists of the following information:
+
         - acqIndex: Acquisition number
         - roiIndex: Region of Interest number
         - xOrigin: ROI’s X Origin
@@ -596,8 +598,8 @@ class ChargeCoupledDevice(AbstractDevice):
         - xBinning: ROI’s X Bin
         - yBinning: ROI’s Y Bin
         - Timestamp: This is a timestamp that relates to the time when the all the programmed acquisitions have
-                     completed. The data from all programmed acquisitions are retrieve from the CCD after all
-                     acquisitions have completed, therefore the same timestamp is used for all acquisitions.
+          completed. The data from all programmed acquisitions are retrieve from the CCD after all
+          acquisitions have completed, therefore the same timestamp is used for all acquisitions.
         """
         response: Response = await super()._execute_command('ccd_getAcquisitionData', {'index': self._id})
         return response.results['acquisition']
@@ -625,9 +627,10 @@ class ChargeCoupledDevice(AbstractDevice):
         """Finds the center wavelength positions based on the input range and pixel overlap.
 
         The following commands are prerequisites and should be called prior to using this command:
-        - :func:`ChargeCoupledDevice.set_x`,
-        - :func:`ChargeCoupledDevice.ccd_setAcqFormat`,
-        - :func:`ChargeCoupledDevice.ccd_setRoi`
+
+        - :func:`ChargeCoupledDevice.set_x_axis_conversion_type`,
+        - :func:`ChargeCoupledDevice.set_acquisition_format`,
+        - :func:`ChargeCoupledDevice.set_region_of_interest`
 
         Args:
             monochromator_index (int): Index of the monochromator that is connected to the setup
