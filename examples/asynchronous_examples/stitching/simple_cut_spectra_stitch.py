@@ -1,7 +1,7 @@
 from typing import Any, List
 
 from loguru import logger
-from numpy import argsort, array, concatenate, dtype, interp, ndarray
+from numpy import array, concatenate, dtype, ndarray
 from overrides import override
 
 from examples.asynchronous_examples.stitching.spectra_stitch import SpectraStitch
@@ -67,7 +67,6 @@ class SimpleCutSpectraStitch(SpectraStitch):
             logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
             raise Exception('No overlapping region between spectra')
 
-        mask1 = (x1 >= overlap_start) & (x1 <= overlap_end)
         mask2 = (x2 >= overlap_start) & (x2 <= overlap_end)
 
         x2_overlap = x2[mask2]
