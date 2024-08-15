@@ -370,7 +370,7 @@ class ChargeCoupledDevice(AbstractDevice):
         """Returns the exposure time in ms
 
         Returns:
-            pint.Quantity: Exposure time in ms
+            int: Exposure time in ms
         Raises:
             Exception: When an error occurred on the device side
         """

@@ -61,13 +61,13 @@ The center scan scans at/around a given wavelength and displays the scanned inte
 
    .. code:: bash
 
-     pip install matplotlib
+     pip install matplotlib numpy
 
    or install with `Poetry`
 
    .. code:: bash
 
-     poetry add matplotlib
+     poetry add matplotlib numpy
 
 3. Run the example with:
 

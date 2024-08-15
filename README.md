@@ -102,13 +102,13 @@ ___
 3. Install the required library for plotting the graph in the example:
 
    ```bash
-   pip install matplotlib
+   pip install matplotlib numpy
    ```
 
    or install with `Poetry`
 
    ```bash
-   poetry add matplotlib
+   poetry add matplotlib numpy
    ```
 
 4. Run the example with:
