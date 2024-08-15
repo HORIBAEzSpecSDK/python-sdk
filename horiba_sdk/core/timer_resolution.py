@@ -5,7 +5,7 @@ from typing import final
 @final
 class TimerResolution(Enum):
     """
-    .. note:: The timer resolution value of 1 microsecond is not supported by all CCDs.
+    .. note:: The timer resolution value MICROSECONDS is not supported by all CCDs.
     """
 
     MILLISECONDS = 0

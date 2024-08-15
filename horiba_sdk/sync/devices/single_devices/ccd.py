@@ -199,8 +199,8 @@ class ChargeCoupledDevice(AbstractDevice):
         """Sets the acquisition format and the number of ROIs (Regions of Interest) or areas.
 
         After using this command to set the number of ROIs and format, the set_region_of_interest function
-        should be used to define each ROI. Note: The Crop and Fast Kinetics acquisition formats are not
-        supported by every CCD.
+        should be used to define each ROI.
+        .. note:: The Crop and Fast Kinetics acquisition formats are not supported by every CCD.
 
         Args:
             number_of_rois (int): Number of regions of interest
@@ -548,8 +548,9 @@ class ChargeCoupledDevice(AbstractDevice):
     def set_acquisition_start(self, open_shutter: bool) -> None:
         """Starts an acquisition that has been set up according to the previously defined acquisition parameters.
 
-        Note: To specify the acquisiton parameters please see set_region_of_interest, set_x_axis_conversion_type.
-        If there are no acquisition parameters set at the time of acquisition it may result in no data being generated.
+        .. note:: To specify the acquisition parameters please see :func:`ChargeCoupledDevice.set_region_of_interest`,
+        :func:`ChargeCoupledDevice.set_x_axis_conversion_type`. If there are no acquisition parameters set at the time
+        of acquisition it may result in no data being generated.
 
         Args:
             open_shutter (bool): Whether the shutter of the camera should be open during the acquisition.

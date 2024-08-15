@@ -81,6 +81,7 @@ This document describes the remote command and data API provided by the ICL.
     - [ccd\_getAcquisitionBusy](#ccd_getacquisitionbusy)
     - [ccd\_getAcquisitionData](#ccd_getacquisitiondata)
     - [ccd\_setCenterWavelength](#ccd_setcenterwavelength)
+    - [ccd\_calculateRangeModePositions](#ccd_calculaterangemodepositions)
 
   - [SpectrAcq3 - Single Channel Detector Interface](#spectracq3---single-channel-detector-interface)
     - [scd\_discover](#scd_discover)
@@ -1435,8 +1436,8 @@ _Note:_ To view the status of the shutter solenoid the device must be configured
 **Response results:**
 >| results | description |
 >|---|---|
->| shutterIndex | Integer. Index of the currently selected shutter.
->| shutterStatus | Integer. Shutter position status. <br> 0 = Closed <br> 1 = Open
+>| locationId | Integer. Identifies the currently selected shutter. <br> 0 = Shutter 1 (Front shutter) <br> 1 = Shutter 2 (Side shutter)
+>| position | Integer. Shutter position status. <br> 0 = Closed <br> 1 = Open
 
 **Example command:**
 
@@ -1458,8 +1459,8 @@ _Note:_ To view the status of the shutter solenoid the device must be configured
     "command": "mono_getShutterStatus",
     "errors": [],
     "results": {
-        "shutterIndex": 1,
-        "shutterPosition": 0
+        "locationId": 0,
+        "position": 1
     }  
 }
 ```
@@ -1814,7 +1815,6 @@ Returns the CCD device configuration.
     "id": 1234,
     "results": {
         "configuration": {
-            "centerWavelength": 0,
             "chipHSpacing": "140",
             "chipHeight": "70",
             "chipName": "S10420",
@@ -2597,7 +2597,8 @@ _\*Note:_ The timer resolution value of 1 microsecond is not supported by every 
 
 ### <a id="ccd_setacqformat"></a>ccd_setAcqFormat
 
-Sets the acquisition format and the number of ROIs (Regions of Interest) or areas. After using this command to set the number of ROIs and format, the [ccd_setRoi](#ccd_setroi) command should be used to define each ROI.
+Sets the acquisition format and the number of ROIs (Regions of Interest) or areas. This command will remove all previously defined ROIs. After using this command, the [ccd_setRoi](#ccd_setroi) command should be used to define each ROI.
+
 
 **Command Parameters:**
 >| parameter  | description   |
@@ -3372,9 +3373,17 @@ The supported signal options are retrieved using the [ccd_getConfig](#ccd_getcon
 
 ### <a id="ccd_getacquisitionready"></a>ccd_getAcquisitionReady
 
-This command is used to get the Acquisition Ready state. The Acquisition Ready state indicates whether the CCD has a sufficient number of parameters specified, and has been properly setup for acquiring data.
+This command is used to get the Acquisition Ready state. The Acquisition Ready state indicates whether the CCD has a sufficient number of parameters specified and has been properly setup for acquiring data. This command may return false under the following conditions: 
+- Invalid acquisition format (see [ccd_setAcqFormat](#ccd_setacqformat)) 
+- Invalid x/y origin 
+- Invalid x/y size 
+- Invalid x/y bin 
+- Too many ROIs defined 
+- System busy
 
-_Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setroi) and [ccd_setXAxisConversionType](#ccd_setxaxisconversiontype). If there are no acquisition parameters set at the time of acquisition it may result in no data being generated.
+<br>
+
+_Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setroi) and [ccd_setXAxisConversionType](#ccd_setxaxisconversiontype). If there are no acquisition parameters specified at the time of acquisition it may result in no data being generated.
 
 **Command Parameters:**
 >| parameter  | description   |
@@ -3421,7 +3430,7 @@ _Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setro
 
 Starts an acquisition that has been set up according to the previously defined acquisition parameters.
 
-_Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setroi) and [ccd_setXAxisConversionType](#ccd_setxaxisconversiontype). If there are no acquisition parameters set at the time of acquisition it may result in no data being generated.
+_Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setroi) and [ccd_setXAxisConversionType](#ccd_setxaxisconversiontype). If there are no acquisition parameters specified at the time of acquisition it may result in no data being generated.
 
 **Command Parameters:**
 >| parameter  | description   |
@@ -3592,10 +3601,13 @@ The acquisition description string consists of the following information:
 
 Sets the center wavelength value to be used in the grating equation.
 
+_Note:_ This command should be called before [ccd_getAcquisitionReady](#ccd_getacquisitionready) and [ccd_setAcquisitionStart](#ccd_setacquisitionstart).
+
 **Command Parameters:**
 >| parameter  | description   |
 >|---|---|
 >| index | Integer. Used to identify which CCD to target. See [ccd_list](#ccd_list) command|
+>| monoIndex | Integer. Used to identify which mono to target for the current grating density. See [mono_list](#mono_list) command |
 >| wavelength | Float. Center wavelength. |
 
 **Return Results:**
@@ -3612,6 +3624,7 @@ Sets the center wavelength value to be used in the grating equation.
     "command": "ccd_setCenterWavelength",
     "parameters": {
         "index": 0,
+        "monoIndex": 0
         "wavelength": 200.00
     }
 }
@@ -3625,6 +3638,65 @@ Sets the center wavelength value to be used in the grating equation.
     "errors": [],
     "id": 1234,
     "results": {}
+}
+```
+
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="ccd_calculaterangemodepositions"></a>ccd_calculateRangeModePositions
+
+Finds the center wavelength positions based on the input range and pixel overlap. The following commands are prerequisites and should be called prior to using this command: [ccd_setXAxisConversionType](#ccd_setxaxisconversiontype), [ccd_setAcqFormat](#ccd_setacqformat), and [ccd_setRoi](#ccd_setroi).
+
+**Command Parameters:**
+>| parameter  | description   |
+>|---|---|
+>| index | Integer. Used to identify which CCD to target. See [ccd_list](#ccd_list) command |
+>| monoIndex | Integer. Used to identify which mono to target for the current grating density. See [mono_list](#mono_list) command |
+>| start | Float. Start wavelength. |
+>| end | Float. End wavelength. |
+>| overlap | Float. Pixel overlap. |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| centerWavelengths | Array. Center wavelength positions. |
+>| covers | Integer. Number of covers needed for range. |
+
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "ccd_calculateRangeModePositions",
+    "parameters": {
+        "index": 0,
+        "monoIndex": 0,
+        "start": 200.00,
+        "end": 600.00,
+        "overlap": 10
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "ccd_calculateRangeModePositions",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "centerWavelengths": [
+            280.82,
+            443.30,
+            603.23
+        ],
+        "covers": 3
+    }
 }
 ```
 
@@ -3925,6 +3997,8 @@ ERR_CCD_ACQ_DATA_FORMAT_ERROR   -321
 ERR_CCD_UNSUPPORTED_ACQ_FORMAT  -322
 ERR_CCD_CMD_EXECUTION_EXCEPTION -323
 ERR_CCD_MISSING_PARAMETER       -324
+ERR_CCD_CONFIG_FORMAT_ERROR     -325
+ERR_CCD_DATA_FORMAT_ERROR       -326
 
 ERR_MONO_ALREADY_INIT           -500
 ERR_MONO_ALREADY_OPEN           -501
@@ -3948,6 +4022,10 @@ ERR_MONO_GET_CONFIGURATION      -518
 ERR_MONO_COMMAND_ERROR          -519
 ERR_MONO_COMM_FAILED            -520
 ERR_MONO_MISSING_PARAMETER      -521
+ERR_MONO_CONFIG_FORMAT_ERROR    -522
+ERR_MONO_DATA_FORMAT_ERROR      -523
+ERR_MONO_ACCESSORY_NOT_FOUND    -524
+
 
 ERR_SCD_CMD_NOT_SUPPORTED       -600
 

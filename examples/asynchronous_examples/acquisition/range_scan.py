@@ -4,7 +4,7 @@ import asyncio
 import matplotlib.pyplot as plt
 from loguru import logger
 
-from examples.asynchronous_examples.linear_spectra_stitch import LinearSpectraStitch
+from examples.asynchronous_examples.stitching.linear_spectra_stitch import LinearSpectraStitch
 from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType

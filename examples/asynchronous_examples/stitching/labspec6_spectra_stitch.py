@@ -1,14 +1,14 @@
 from typing import Any, List
 
 from loguru import logger
-from numpy import argsort, array, concatenate, dtype, interp, ndarray
+from numpy import array, concatenate, dtype, ndarray
 from overrides import override
 
-from examples.asynchronous_examples.spectra_stitch import SpectraStitch
+from examples.asynchronous_examples.stitching.spectra_stitch import SpectraStitch
 
 
-class LinearSpectraStitch(SpectraStitch):
-    """Stiches a list of spectra using a linear model"""
+class LabSpec6SpectraStitch(SpectraStitch):
+    """Stitches a list of spectra using a weighted average as in LabSpec6"""
 
     def __init__(self, spectra_list: List[List[List[float]]]) -> None:
         """Constructs a linear stitch of spectra.
@@ -36,7 +36,7 @@ class LinearSpectraStitch(SpectraStitch):
         Returns:
             SpectraStitch: The stitched spectra.
         """
-        new_stitch = LinearSpectraStitch([self.stitched_spectra(), other_stitch.stitched_spectra()])
+        new_stitch = LabSpec6SpectraStitch([self.stitched_spectra(), other_stitch.stitched_spectra()])
         return new_stitch
 
     @override
@@ -67,15 +67,24 @@ class LinearSpectraStitch(SpectraStitch):
         mask1 = (x1 >= overlap_start) & (x1 <= overlap_end)
         mask2 = (x2 >= overlap_start) & (x2 <= overlap_end)
 
-        y2_interp = interp(x1[mask1], x2[mask2], y2[mask2])
+        x1_overlap = x1[mask1]
+        y1_overlap = y1[mask1]
 
-        y_combined_overlap = (y1[mask1] + y2_interp) / 2
+        x2_overlap = x2[mask2]
+        y2_overlap = y2[mask2]
 
-        x_combined = concatenate((x1[~mask1], x1[mask1], x2[~mask2]))
-        y_combined = concatenate((y1[~mask1], y_combined_overlap, y2[~mask2]))
+        A = (x1_overlap - overlap_start) / (overlap_end - overlap_start)
+        B = (overlap_end - x2_overlap) / (overlap_end - overlap_start)
 
-        sort_indices = argsort(x_combined)
-        x_combined = x_combined[sort_indices]
-        y_combined = y_combined[sort_indices]
+        y_stitched = (y1_overlap * A + y2_overlap * B) / (A + B)
 
-        return [x_combined.tolist(), y_combined.tolist()]
+        x_before = x1[x1 < overlap_start]
+        y_before = y1[x1 < overlap_start]
+
+        x_after = x2[x2 > overlap_end]
+        y_after = y2[x2 > overlap_end]
+
+        x_stitched = concatenate([x_before, x1_overlap, x_after])
+        y_stitched_final = concatenate([y_before, y_stitched, y_after])
+
+        return [x_stitched.tolist(), y_stitched_final.tolist()]
