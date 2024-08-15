@@ -4,10 +4,10 @@ import asyncio
 import matplotlib.pyplot as plt
 from loguru import logger
 
-from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.devices.device_manager import DeviceManager
+from horiba_sdk.devices.single_devices.monochromator import Monochromator
 
 
 async def main():
@@ -30,6 +30,8 @@ async def main():
         # mono initialization
         await mono.home()
         await wait_for_mono(mono)
+        await mono.set_turret_grating(Monochromator.Grating.THIRD)
+        await wait_for_mono(mono)
 
         target_wavelength = 585.25
         await mono.move_to_target_wavelength(target_wavelength)
@@ -37,15 +39,17 @@ async def main():
         await mono.set_turret_grating(mono.Grating.SECOND)
         await wait_for_mono(mono)
 
-
         # ccd configuration
-        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
         await ccd.set_acquisition_count(1)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
         await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
         await ccd.set_exposure_time(500)
+        await ccd.set_speed(2)  # 1 MHz Ultra
+        # await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
+        # await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
-        await ccd.set_center_wavelength(target_wavelength)
+        await ccd.set_center_wavelength(mono.id(), target_wavelength)
+
         xy_data = [[0], [0]]
 
         if await ccd.get_acquisition_ready():
@@ -55,26 +59,26 @@ async def main():
 
             raw_data = await ccd.get_acquisition_data()
 
-            xy_data=(eval(str(raw_data)))['acquisition'][0]['roi'][0]['xyData']
-           
-            #with open('dataoutput.txt', 'w') as d:
-                #for key in xy_data:
-                    #d.write(str(key))
-                    #d.write('\n')
-                    #d.write('\n')
-                    #d.write(str(value))
-                    #d.write('\n')
-                    #d.write(str(type(value)))
-                    #d.write('\n')
-            
-            #pb
-            #below doesn't work (KeyError on raw_data[0]), need to parse out data further...
+            xy_data = (eval(str(raw_data)))['acquisition'][0]['roi'][0]['xyData']
+
+            # with open('dataoutput.txt', 'w') as d:
+            # for key in xy_data:
+            # d.write(str(key))
+            # d.write('\n')
+            # d.write('\n')
+            # d.write(str(value))
+            # d.write('\n')
+            # d.write(str(type(value)))
+            # d.write('\n')
+
+            # pb
+            # below doesn't work (KeyError on raw_data[0]), need to parse out data further...
             # xy_data = raw_data[0]['roi'][0]['xyData']
-
-
 
             # for AcquisitionFormat.IMAGE:
             # xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData'][0]]
+        else:
+            raise Exception('CCD not ready for acquisition')
     finally:
         await ccd.close()
         logger.info('Waiting before closing Monochromator')
@@ -87,11 +91,11 @@ async def main():
 
 
 async def plot_values(target_wavelength, xy_data):
-    #with open('output.txt', 'w') as f:
-        #f.write(str(xy_data))
-        #f.write('\n')
-        #f.write(str(type(xy_data)))
-        #f.close()
+    # with open('output.txt', 'w') as f:
+    # f.write(str(xy_data))
+    # f.write('\n')
+    # f.write(str(type(xy_data)))
+    # f.close()
     x_values = [data[0] for data in xy_data]
     y_values = [data[1] for data in xy_data]
     # for AcquisitionFormat.IMAGE:
@@ -104,6 +108,7 @@ async def plot_values(target_wavelength, xy_data):
     plt.ylabel('Intensity')
     plt.grid(True)
     plt.show()
+
 
 async def wait_for_ccd(ccd):
     acquisition_busy = True

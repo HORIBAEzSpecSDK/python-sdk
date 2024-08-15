@@ -23,6 +23,14 @@ class AbstractDevice(ABC):
         self._error_db: AbstractErrorDB = error_db
         self._communicator: AbstractCommunicator = communicator
 
+    def id(self) -> int:
+        """Return the ID of the device.
+
+        Returns:
+            int: ID of the device.
+        """
+        return self._id
+
     @abstractmethod
     def open(self) -> None:
         """

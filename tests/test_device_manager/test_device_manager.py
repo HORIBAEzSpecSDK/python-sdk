@@ -14,7 +14,10 @@ def is_icl_running() -> bool:
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
+@pytest.mark.skipif(
+    os.environ.get('HAS_HARDWARE') != 'true' or (os.environ.get('TEST_ICL_IP') and os.environ.get('TEST_ICL_PORT')),
+    reason='Hardware tests only run locally',
+)
 async def test_device_manager_start_icl(event_loop):  # noqa: ARG001
     device_manager = DeviceManager(start_icl=True)
     await device_manager.start()
@@ -24,9 +27,7 @@ async def test_device_manager_start_icl(event_loop):  # noqa: ARG001
 
 
 async def test_device_manager_with_fake_icl_exe(event_loop, fake_icl_exe, fake_icl_host_fixture, fake_icl_port_fixture):  # noqa: ARG001
-    device_manager = DeviceManager(
-        start_icl=False, websocket_ip=fake_icl_host_fixture, websocket_port=fake_icl_port_fixture
-    )
+    device_manager = DeviceManager(start_icl=False, icl_ip=fake_icl_host_fixture, icl_port=fake_icl_port_fixture)
     await device_manager.start()
     communicator = device_manager.communicator
 

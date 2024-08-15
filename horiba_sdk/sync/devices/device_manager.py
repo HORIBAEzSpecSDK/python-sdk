@@ -30,8 +30,8 @@ class DeviceManager(AbstractDeviceManager):
     def __init__(
         self,
         start_icl: bool = True,
-        websocket_ip: str = '127.0.0.1',
-        websocket_port: str = '25010',
+        icl_ip: str = '127.0.0.1',
+        icl_port: str = '25010',
         enable_binary_messages: bool = True,
     ):
         """
@@ -39,17 +39,15 @@ class DeviceManager(AbstractDeviceManager):
 
         Args:
             start_icl (bool) = True: If True, the ICL software is started and communication is established.
-            websocket_ip (str) = '127.0.0.1': websocket IP
-            websocket_port (str) = '25010': websocket port
+            icl_ip (str) = '127.0.0.1': websocket IP
+            icl_port (str) = '25010': websocket port
             enable_binary_messages (bool) = True: If True, binary messages are enabled.
         """
         super().__init__()
         self._start_icl = start_icl
-        self._icl_communicator: WebsocketCommunicator = WebsocketCommunicator(
-            'ws://' + websocket_ip + ':' + str(websocket_port)
-        )
-        self._icl_websocket_ip: str = websocket_ip
-        self._icl_websocket_port: str = websocket_port
+        self._icl_communicator: WebsocketCommunicator = WebsocketCommunicator('ws://' + icl_ip + ':' + str(icl_port))
+        self._icl_websocket_ip: str = icl_ip
+        self._icl_websocket_port: str = icl_port
         self._icl_process: Optional[Popen[bytes]] = None
         self._binary_messages: bool = enable_binary_messages
         self._charge_coupled_devices: list[ChargeCoupledDevice] = []
@@ -76,7 +74,12 @@ class DeviceManager(AbstractDeviceManager):
 
     @override
     def stop(self) -> None:
-        self.stop_icl()
+        if self._start_icl:
+            self.stop_icl()
+            return
+
+        if self._icl_communicator.opened():
+            self._icl_communicator.close()
 
     def start_icl(self) -> None:
         """

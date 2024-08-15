@@ -73,7 +73,7 @@ async def test_ccd_timer_resolution(fake_device_manager, fake_icl_exe):  # noqa:
         timer_resolution = await ccd.get_timer_resolution()
 
         # assert
-        assert timer_resolution == TimerResolution._1000_MICROSECONDS
+        assert timer_resolution == TimerResolution.MILLISECONDS
 
 
 async def test_ccd_x_axis_conversion_type(fake_device_manager, fake_icl_exe):  # noqa: ARG001

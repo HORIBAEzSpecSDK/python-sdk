@@ -3,9 +3,7 @@ import asyncio
 import os
 
 import pytest
-import pytest_asyncio
 
-from horiba_sdk.devices import DeviceManager
 from horiba_sdk.devices.single_devices import Monochromator
 
 
@@ -16,32 +14,21 @@ def event_loop(request):  # noqa: ARG001
     loop.close()
 
 
-@pytest_asyncio.fixture(scope='module')
-async def device_manager_instance():
-    device_manager = DeviceManager(start_icl=True)
-
-    await device_manager.start()
-
-    yield device_manager
-
-    await device_manager.stop()
-
-
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_opens(device_manager_instance):
+async def test_monochromator_opens(async_device_manager_instance):
     # arrange
     # act
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         # assert
         assert await monochromator.is_open() is True
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_busy(device_manager_instance):
+async def test_monochromator_busy(async_device_manager_instance):
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         # act
         # assert
         assert await monochromator.is_busy() is False
@@ -49,9 +36,9 @@ async def test_monochromator_busy(device_manager_instance):
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_init(device_manager_instance):
+async def test_monochromator_init(async_device_manager_instance):
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         # act
         await monochromator.home()
 
@@ -64,9 +51,9 @@ async def test_monochromator_init(device_manager_instance):
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_config(device_manager_instance):  # noqa: ARG001
+async def test_monochromator_config(async_device_manager_instance):  # noqa: ARG001
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         # act
         config = await monochromator.configuration()
 
@@ -77,9 +64,9 @@ async def test_monochromator_config(device_manager_instance):  # noqa: ARG001
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_wavelength(device_manager_instance):
+async def test_monochromator_wavelength(async_device_manager_instance):
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         # act
         await monochromator.move_to_target_wavelength(100)
 
@@ -92,9 +79,9 @@ async def test_monochromator_wavelength(device_manager_instance):
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_calibrate_wavelength(device_manager_instance):
+async def test_monochromator_calibrate_wavelength(async_device_manager_instance):
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         # act
         # TODO: How to test this properly???
         # await monochromator.calibrate_wavelength(350)
@@ -106,9 +93,9 @@ async def test_monochromator_calibrate_wavelength(device_manager_instance):
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 @pytest.mark.asyncio
-async def test_monochromator_turret_grating_position(device_manager_instance):
+async def test_monochromator_turret_grating_position(async_device_manager_instance):
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         expected_grating = Monochromator.Grating.FIRST
 
         # act
@@ -126,20 +113,22 @@ async def test_monochromator_turret_grating_position(device_manager_instance):
 # Note: Filter wheel not available on our mono
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_filter_wheel(device_manager_instance):  # noqa: ARG001
+async def test_monochromator_filter_wheel(async_device_manager_instance):  # noqa: ARG001
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         filter_wheel = Monochromator.FilterWheel.SECOND
         expected_filter_wheel_position_before = Monochromator.FilterWheelPosition.RED
         expected_filter_wheel_position_after = Monochromator.FilterWheelPosition.GREEN
 
         # act
         await monochromator.set_filter_wheel_position(filter_wheel, expected_filter_wheel_position_before)
+        await asyncio.sleep(0.4)
         while await monochromator.is_busy():
             await asyncio.sleep(1)
         actual_filter_wheel_position_before = await monochromator.get_filter_wheel_position(filter_wheel)
 
         await monochromator.set_filter_wheel_position(filter_wheel, expected_filter_wheel_position_after)
+        await asyncio.sleep(0.4)
         while await monochromator.is_busy():
             await asyncio.sleep(1)
         actual_filter_wheel_position_after = await monochromator.get_filter_wheel_position(filter_wheel)
@@ -151,21 +140,24 @@ async def test_monochromator_filter_wheel(device_manager_instance):  # noqa: ARG
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_mirror(device_manager_instance):  # noqa: ARG001
+async def test_monochromator_mirror(async_device_manager_instance):  # noqa: ARG001
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         expected_mirror_position_before = Monochromator.MirrorPosition.LATERAL
         expected_mirror_position_after = Monochromator.MirrorPosition.AXIAL
         timeout_s = 120
         await monochromator.home()
         current_time = 0
+        await asyncio.sleep(0.4)
         while await monochromator.is_busy() and current_time < timeout_s:
             await asyncio.sleep(1)
+            current_time += 1
             if current_time >= timeout_s:
                 raise TimeoutError('Timeout error')
         # act
         await monochromator.set_mirror_position(Monochromator.Mirror.ENTRANCE, expected_mirror_position_before)
         current_time = 0
+        await asyncio.sleep(0.4)
         while await monochromator.is_busy() and current_time < timeout_s:
             await asyncio.sleep(1)
             current_time += 1
@@ -191,14 +183,15 @@ async def test_monochromator_mirror(device_manager_instance):  # noqa: ARG001
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_slit(device_manager_instance):  # noqa: ARG001
+async def test_monochromator_slit(async_device_manager_instance):  # noqa: ARG001
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         timeout_s = 120
         await monochromator.home()
         current_time = 0
         while await monochromator.is_busy() and current_time < timeout_s:
             await asyncio.sleep(1)
+            current_time += 1
             if current_time >= timeout_s:
                 raise TimeoutError('Timeout error')
 
@@ -211,6 +204,7 @@ async def test_monochromator_slit(device_manager_instance):  # noqa: ARG001
         current_time = 0
         while await monochromator.is_busy() and current_time < timeout_s:
             await asyncio.sleep(1)
+            current_time += 1
             if current_time >= timeout_s:
                 raise TimeoutError('Timeout error')
 
@@ -220,6 +214,7 @@ async def test_monochromator_slit(device_manager_instance):  # noqa: ARG001
         current_time = 0
         while await monochromator.is_busy() and current_time < timeout_s:
             await asyncio.sleep(1)
+            current_time += 1
             if current_time >= timeout_s:
                 raise TimeoutError('Timeout error')
 
@@ -232,9 +227,9 @@ async def test_monochromator_slit(device_manager_instance):  # noqa: ARG001
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_shutter(device_manager_instance):
+async def test_monochromator_shutter(async_device_manager_instance):
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         expected_shutter_position_before = Monochromator.ShutterPosition.CLOSED
         expected_shutter_position_after = Monochromator.ShutterPosition.OPENED
 
@@ -252,9 +247,9 @@ async def test_monochromator_shutter(device_manager_instance):
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_monochromator_slit_step_position(device_manager_instance):  # noqa: ARG001
+async def test_monochromator_slit_step_position(async_device_manager_instance):  # noqa: ARG001
     # arrange
-    async with device_manager_instance.monochromators[0] as monochromator:
+    async with async_device_manager_instance.monochromators[0] as monochromator:
         await monochromator.home()
         while await monochromator.is_busy():
             await asyncio.sleep(1)

@@ -1,11 +1,15 @@
 # pylint: skip-file
 import asyncio
+import os
 import threading
 
 import pytest
+import pytest_asyncio
 
+from horiba_sdk.devices import DeviceManager as AsyncDeviceManager
 from horiba_sdk.devices import FakeDeviceManager
 from horiba_sdk.devices.fake_icl_server import FakeICLServer
+from horiba_sdk.sync.devices import DeviceManager as SyncDeviceManager
 from horiba_sdk.sync.devices import FakeDeviceManager as FakeSyncDeviceManager
 from horiba_sdk.sync.devices.fake_icl_server import FakeICLServer as FakeSyncICLServer
 
@@ -72,3 +76,37 @@ def fake_sync_device_manager():  # noqa: ARG001
 
     yield fake_device_manager
     fake_device_manager.stop()
+
+
+@pytest.fixture(scope='module')
+def sync_device_manager_instance():
+    icl_ip_for_tests = os.environ.get('TEST_ICL_IP')
+    icl_port_for_tests = os.environ.get('TEST_ICL_PORT')
+    icl_on_remote_computer = icl_ip_for_tests is not None and icl_port_for_tests is not None
+    if icl_on_remote_computer:
+        device_manager = SyncDeviceManager(start_icl=False, icl_ip=icl_ip_for_tests, icl_port=icl_port_for_tests)
+    else:
+        device_manager = SyncDeviceManager(start_icl=True)
+
+    device_manager.start()
+
+    yield device_manager
+
+    device_manager.stop()
+
+
+@pytest_asyncio.fixture(scope='module')
+async def async_device_manager_instance():
+    icl_ip_for_tests = os.environ.get('TEST_ICL_IP')
+    icl_port_for_tests = os.environ.get('TEST_ICL_PORT')
+    icl_on_remote_computer = icl_ip_for_tests is not None and icl_port_for_tests is not None
+    if icl_on_remote_computer:
+        device_manager = AsyncDeviceManager(start_icl=False, icl_ip=icl_ip_for_tests, icl_port=icl_port_for_tests)
+    else:
+        device_manager = AsyncDeviceManager(start_icl=True)
+
+    await device_manager.start()
+
+    yield device_manager
+
+    await device_manager.stop()

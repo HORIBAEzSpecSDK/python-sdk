@@ -4,8 +4,6 @@
 __version__ = '0.2.0'  # It MUST match the version in pyproject.toml file
 from importlib import metadata as importlib_metadata
 
-from pint import UnitRegistry
-
 
 def get_version() -> str:
     try:
@@ -15,5 +13,3 @@ def get_version() -> str:
 
 
 version: str = get_version()
-
-ureg = UnitRegistry()

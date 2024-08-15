@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Any, Optional, final
+from typing import Any, List, Optional, final
 
 from loguru import logger
 from overrides import override
@@ -199,8 +199,8 @@ class ChargeCoupledDevice(AbstractDevice):
         """Sets the acquisition format and the number of ROIs (Regions of Interest) or areas.
 
         After using this command to set the number of ROIs and format, the set_region_of_interest function
-        should be used to define each ROI. Note: The Crop and Fast Kinetics acquisition formats are not
-        supported by every CCD.
+        should be used to define each ROI.
+        .. note:: The Crop and Fast Kinetics acquisition formats are not supported by every CCD.
 
         Args:
             number_of_rois (int): Number of regions of interest
@@ -355,7 +355,7 @@ class ChargeCoupledDevice(AbstractDevice):
         """Returns the exposure time in ms
 
         Returns:
-            pint.Quantity: Exposure time in ms
+            int: Exposure time in ms
         Raises:
             Exception: When an error occurred on the device side
         """
@@ -548,8 +548,9 @@ class ChargeCoupledDevice(AbstractDevice):
     def set_acquisition_start(self, open_shutter: bool) -> None:
         """Starts an acquisition that has been set up according to the previously defined acquisition parameters.
 
-        Note: To specify the acquisiton parameters please see set_region_of_interest, set_x_axis_conversion_type.
-        If there are no acquisition parameters set at the time of acquisition it may result in no data being generated.
+        .. note:: To specify the acquisition parameters please see :func:`ChargeCoupledDevice.set_region_of_interest`,
+        :func:`ChargeCoupledDevice.set_x_axis_conversion_type`. If there are no acquisition parameters set at the time
+        of acquisition it may result in no data being generated.
 
         Args:
             open_shutter (bool): Whether the shutter of the camera should be open during the acquisition.
@@ -585,3 +586,52 @@ class ChargeCoupledDevice(AbstractDevice):
         """
         response: Response = super()._execute_command('ccd_getAcquisitionData', {'index': self._id})
         return response.results['acquisition']
+
+    def set_center_wavelength(self, center_wavelength: float) -> None:
+        """Sets the center wavelength value to be used in the grating equation.
+
+        Used when X axis conversion is XAxisConversionType.FROM_ICL_SETTINGS_INI
+
+        Args:
+            center_wavelength (float): Center wavelength
+
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        super()._execute_command(
+            'ccd_setCenterWavelength',
+            {'index': self._id, 'wavelength': center_wavelength},
+        )
+
+    def range_mode_center_wavelengths(
+        self, monochromator_index: int, start_wavelength: float, end_wavelength: float, pixel_overlap: int
+    ) -> List[float]:
+        """Finds the center wavelength positions based on the input range and pixel overlap.
+
+        The following commands are prerequisites and should be called prior to using this command:
+        - :func:`ChargeCoupledDevice.set_x`,
+        - :func:`ChargeCoupledDevice.ccd_setAcqFormat`,
+        - :func:`ChargeCoupledDevice.ccd_setRoi`
+
+        Args:
+            monochromator_index (int): Index of the monochromator that is connected to the setup
+            start_wavelength (float): Start wavelength
+            end_wavelength (float): End wavelength
+            pixel_overlap (int): Overlap size in pixels between the scans.
+
+        Returns:
+            List[float]: List of center wavelength positions to cover the desired range.
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        response: Response = super()._execute_command(
+            'ccd_calculateRangeModePositions',
+            {
+                'index': self._id,
+                'monoIndex': monochromator_index,
+                'start': start_wavelength,
+                'end': end_wavelength,
+                'overlap': pixel_overlap,
+            },
+        )
+        return response.results['centerWavelengths']
