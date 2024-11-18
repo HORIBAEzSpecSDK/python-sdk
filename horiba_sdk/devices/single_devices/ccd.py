@@ -558,7 +558,7 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = await super()._execute_command('ccd_getAcquisitionReady', {'index': self._id})
         return bool(response.results['ready'])
 
-    async def set_acquisition_start(self, open_shutter: bool) -> None:
+    async def acquisition_start(self, open_shutter: bool) -> None:
         """Starts an acquisition that has been set up according to the previously defined acquisition parameters.
 
         Note: To specify the acquisiton parameters please see set_region_of_interest, set_x_axis_conversion_type.
@@ -569,7 +569,7 @@ class ChargeCoupledDevice(AbstractDevice):
         Raises:
             Exception: When an error occurred on the device side
         """
-        await super()._execute_command('ccd_setAcquisitionStart', {'index': self._id, 'openShutter': open_shutter})
+        await super()._execute_command('ccd_acquisitionStart', {'index': self._id, 'openShutter': open_shutter})
 
     async def get_acquisition_busy(self) -> bool:
         """Returns true if the CCD is busy with the acquisition"""

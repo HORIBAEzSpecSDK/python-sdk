@@ -37,7 +37,7 @@ def test_ccd_functionality(sync_device_manager_instance):  # noqa: ARG001
         ccd.set_region_of_interest()
 
         if ccd.get_acquisition_ready():
-            ccd.set_acquisition_start(open_shutter=True)
+            ccd.acquisition_start(open_shutter=True)
             time.sleep(1)  # Wait a short period for the acquisition to start
 
             acquisition_busy = True
@@ -193,7 +193,7 @@ def test_ccd_roi(sync_device_manager_instance):  # noqa: ARG001
         # act
         ccd.set_region_of_interest(0, 0, 0, 1000, 200, 1, 200)
         if ccd.get_acquisition_ready():
-            ccd.set_acquisition_start(open_shutter=True)
+            ccd.acquisition_start(open_shutter=True)
             time.sleep(1)  # Wait a short period for the acquisition to start
 
             acquisition_busy = True
@@ -354,7 +354,7 @@ def test_ccd_acquisition_abort(sync_device_manager_instance):  # noqa: ARG001
         ccd.set_region_of_interest()
 
         if ccd.get_acquisition_ready():
-            ccd.set_acquisition_start(open_shutter=True)
+            ccd.acquisition_start(open_shutter=True)
             time.sleep(0.2)  # Wait a short period for the acquisition to start
 
             acquisition_busy_before_abort = ccd.get_acquisition_busy()

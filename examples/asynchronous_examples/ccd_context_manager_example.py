@@ -31,7 +31,7 @@ async def main():
 
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
         if await ccd.get_acquisition_ready():
-            await ccd.set_acquisition_start(open_shutter=True)
+            await ccd.acquisition_start(open_shutter=True)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
             # Poll for acquisition status
             acquisition_busy = True
