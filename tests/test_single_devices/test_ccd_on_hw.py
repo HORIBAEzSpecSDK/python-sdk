@@ -394,7 +394,7 @@ async def test_ccd_acquisition_abort(event_loop, async_device_manager_instance):
 
             acquisition_busy_before_abort = await ccd.get_acquisition_busy()
             await asyncio.sleep(0.2)
-            await ccd.set_acquisition_abort()
+            await ccd.acquisition_abort()
             await asyncio.sleep(0.2)
             acquisition_busy_after_abort = await ccd.get_acquisition_busy()
 
