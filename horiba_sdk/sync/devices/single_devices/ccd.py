@@ -155,6 +155,14 @@ class ChargeCoupledDevice(AbstractDevice):
         parallel_speed_token: int = int(response.results['token'])
         return parallel_speed_token
 
+    def set_parallel_speed(self, parallel_speed_token: int) -> None:
+        """Sets the desired parallel speed token
+
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        super()._execute_command('ccd_setParallelSpeed', {'index': self._id, 'token': parallel_speed_token})
+
     def get_fit_parameters(self) -> list[int]:
         """Returns the fit parameters of the CCD
 
