@@ -21,7 +21,7 @@ async def test_ccd_temperature(fake_device_manager, fake_icl_exe):  # noqa: ARG0
     # act
     async with fake_device_manager.charge_coupled_devices[0] as ccd:
         # assert
-        temperature = await ccd.get_temperature()
+        temperature = await ccd.get_chip_temperature()
         assert temperature < 0.0
 
 

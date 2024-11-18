@@ -27,7 +27,7 @@ async def test_ccd_functionality(event_loop, async_device_manager_instance):  # 
         await ccd.set_exposure_time(new_exposure_time)
         assert await ccd.get_exposure_time() == new_exposure_time
 
-        temperature = await ccd.get_temperature()
+        temperature = await ccd.get_chip_temperature()
         assert temperature < 0
 
         _ignored_speed = await ccd.get_speed_token()
@@ -139,7 +139,7 @@ async def test_ccd_temperature(event_loop, async_device_manager_instance):  # no
     # arrange
     async with async_device_manager_instance.charge_coupled_devices[0] as ccd:
         # act
-        temperature = await ccd.get_temperature()
+        temperature = await ccd.get_chip_temperature()
 
         # assert
         assert temperature < 0

@@ -28,7 +28,7 @@ def test_ccd_functionality(sync_device_manager_instance):  # noqa: ARG001
         ccd.set_exposure_time(new_exposure_time)
         assert ccd.get_exposure_time() == new_exposure_time
 
-        temperature = ccd.get_temperature()
+        temperature = ccd.get_chip_temperature()
         assert temperature < 0
 
         _ignored_speed = ccd.get_speed_token()
@@ -139,7 +139,7 @@ def test_ccd_temperature(sync_device_manager_instance):  # noqa: ARG001
     # arrange
     with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         # act
-        temperature = ccd.get_temperature()
+        temperature = ccd.get_chip_temperature()
 
         # assert
         assert temperature < 0

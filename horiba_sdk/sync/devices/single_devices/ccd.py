@@ -345,7 +345,7 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = super()._execute_command('ccd_getDataSize', {'index': self._id})
         return int(response.results['size'])
 
-    def get_temperature(self) -> float:
+    def get_chip_temperature(self) -> float:
         """Chip temperature of the CCD.
 
         Returns:

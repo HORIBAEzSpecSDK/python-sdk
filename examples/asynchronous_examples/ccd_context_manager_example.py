@@ -23,7 +23,7 @@ async def main():
         exposure_time = await ccd.get_exposure_time()
         logger.info(f'Exposure time: {exposure_time}')
 
-        chip_temperature = await ccd.get_temperature()
+        chip_temperature = await ccd.get_chip_temperature()
         logger.info(f'Chip temperature: {chip_temperature}')
 
         speed = await ccd.get_speed_token()

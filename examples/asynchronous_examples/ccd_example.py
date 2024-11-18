@@ -30,7 +30,7 @@ async def main():
         logger.info(await ccd.get_exposure_time())
         await ccd.set_exposure_time(random.randint(1, 5))
         logger.info(await ccd.get_exposure_time())
-        logger.info(await ccd.get_temperature())
+        logger.info(await ccd.get_chip_temperature())
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
         logger.info(await ccd.get_speed())
         if await ccd.get_acquisition_ready():
