@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Any, List, Optional, final
+from typing import Any, Optional, final
 
 from loguru import logger
 from overrides import override
@@ -154,6 +154,19 @@ class ChargeCoupledDevice(AbstractDevice):
             Exception: When an error occurred on the device side
         """
         await super()._execute_command('ccd_setSpeed', {'index': self._id, 'token': speed_token})
+
+    async def get_parallel_speed(self) -> int:
+        """Gets the current parallel speed token
+
+        Returns:
+            int: current parallel speed token
+
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        response: Response = await super()._execute_command('ccd_getParallelSpeed', {'index': self._id})
+        parallel_speed_token: int = int(response.results['token'])
+        return parallel_speed_token
 
     async def get_fit_parameters(self) -> list[int]:
         """Returns the fit parameters of the CCD
@@ -618,7 +631,7 @@ class ChargeCoupledDevice(AbstractDevice):
 
     async def range_mode_center_wavelengths(
         self, monochromator_index: int, start_wavelength: float, end_wavelength: float, pixel_overlap: int
-    ) -> List[float]:
+    ) -> list[float]:
         """Finds the center wavelength positions based on the input range and pixel overlap.
 
         The following commands are prerequisites and should be called prior to using this command:
