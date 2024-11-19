@@ -3,6 +3,7 @@ Synchronous Device Manager Module
 
 This Device Manager uses threads instead of asyncio
 """
+
 import importlib.resources
 import platform
 import subprocess
