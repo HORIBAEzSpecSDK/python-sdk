@@ -1,9 +1,9 @@
 # Dependencies: matplotlib package
 import asyncio
-
-import matplotlib.pyplot as plt
-from loguru import logger
 import csv
+
+from loguru import logger
+import matplotlib.pyplot as plt
 
 from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.timer_resolution import TimerResolution
@@ -56,7 +56,8 @@ async def main():
         await ccd.set_speed(2)  # 1 MHz Ultra
         await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
         await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
-        await ccd.set_region_of_interest(1, 0, 0, chip_x, chip_y, 1, chip_y)  # Set default ROI, if you want a custom ROI, pass the parameters
+        # Set default ROI, if you want a custom ROI, pass the parameters
+        await ccd.set_region_of_interest(1, 0, 0, chip_x, chip_y, 1, chip_y)  
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
 
 
