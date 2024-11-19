@@ -2,8 +2,8 @@
 import asyncio
 import csv
 
-from loguru import logger
 import matplotlib.pyplot as plt
+from loguru import logger
 
 from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.timer_resolution import TimerResolution
