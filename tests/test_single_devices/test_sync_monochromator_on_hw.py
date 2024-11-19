@@ -38,7 +38,7 @@ def test_monochromator_init(sync_device_manager_instance):
             time.sleep(1)
 
         # assert
-        assert monochromator.is_busy() is False
+        assert monochromator.is_homed() is True
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')

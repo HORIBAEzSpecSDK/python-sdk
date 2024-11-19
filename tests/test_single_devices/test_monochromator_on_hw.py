@@ -46,7 +46,7 @@ async def test_monochromator_init(async_device_manager_instance):
             await asyncio.sleep(1)
 
         # assert
-        assert await monochromator.is_busy() is False
+        assert await monochromator.is_homed() is True
 
 
 @pytest.mark.asyncio
