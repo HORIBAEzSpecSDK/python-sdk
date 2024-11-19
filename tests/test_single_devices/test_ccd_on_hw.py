@@ -83,23 +83,24 @@ async def test_ccd_speed(event_loop, async_device_manager_instance):  # noqa: AR
         assert speed_after == speed_token_after
 
 
-@pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_ccd_parallel_speed(event_loop, async_device_manager_instance):  # noqa: ARG001
-    # arrange
-    async with async_device_manager_instance.charge_coupled_devices[0] as ccd:
-        parallel_speed_token_before = 0
-        parallel_speed_token_after = 1
-
-        # act
-        await ccd.set_parallel_speed(parallel_speed_token_before)
-        parallel_speed_before = await ccd.get_parallel_speed()
-
-        await ccd.set_parallel_speed(parallel_speed_token_after)
-        parallel_speed_after = await ccd.get_parallel_speed()
-
-        # assert
-        assert parallel_speed_before == parallel_speed_token_before
-        assert parallel_speed_after == parallel_speed_token_after
+# Commented out this test because the ccd at Zuehlke doesn't have any parallel speed tokens in the configs
+# @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
+# async def test_ccd_parallel_speed(event_loop, async_device_manager_instance):  # noqa: ARG001
+#     # arrange
+#     async with async_device_manager_instance.charge_coupled_devices[0] as ccd:
+#         parallel_speed_token_before = 0
+#         parallel_speed_token_after = 1
+#
+#         # act
+#         await ccd.set_parallel_speed(parallel_speed_token_before)
+#         parallel_speed_before = await ccd.get_parallel_speed()
+#
+#         await ccd.set_parallel_speed(parallel_speed_token_after)
+#         parallel_speed_after = await ccd.get_parallel_speed()
+#
+#         # assert
+#         assert parallel_speed_before == parallel_speed_token_before
+#         assert parallel_speed_after == parallel_speed_token_after
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
