@@ -81,22 +81,23 @@ async def main():
             data_shutter_open = await ccd.get_acquisition_data()
             logger.info(f'Data with open shutter: {data_shutter_open}')
 
-        noise_data = []
         if acquisition_format == AcquisitionFormat.IMAGE:
             data_shutter_open_selected = data_shutter_open[0]['roi'][0]['yData'][0]
             data_shutter_closed_selected = data_shutter_closed[0]['roi'][0]['yData'][0]
-            noise_data = await subtract_dark_count(
+            data_without_noise = await subtract_dark_count(
                 data_shutter_open_selected, data_shutter_closed_selected, acquisition_format
             )
+            data_shutter_open[0]['roi'][0]['yData'][0] = data_without_noise
 
         elif acquisition_format == AcquisitionFormat.SPECTRA:
             data_shutter_open_selected = data_shutter_open[0]['roi'][0]['xyData']
             data_shutter_closed_selected = data_shutter_closed[0]['roi'][0]['xyData']
-            noise_data = await subtract_dark_count(
+            data_without_noise = await subtract_dark_count(
                 data_shutter_open_selected, data_shutter_closed_selected, acquisition_format
             )
+            data_shutter_open[0]['roi'][0]['xyData'] = data_without_noise
 
-        logger.info(f'Noise data: {noise_data}')
+        logger.info(f'Data without noise: {data_shutter_open}')
 
     finally:
         await ccd.close()
