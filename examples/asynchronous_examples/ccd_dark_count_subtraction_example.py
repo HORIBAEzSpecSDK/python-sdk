@@ -42,21 +42,20 @@ async def main():
         await ccd.set_acquisition_count(1)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
         await ccd.set_acquisition_format(1, acquisition_format)
-        await ccd.set_acquisition_abort()
         logger.info(await ccd.get_acquisition_count())
         logger.info(await ccd.get_clean_count())
         logger.info(await ccd.get_timer_resolution())
-        logger.info(await ccd.get_gain())
+        logger.info(await ccd.get_gain_token())
         logger.info(await ccd.get_chip_size())
         logger.info(await ccd.get_exposure_time())
         await ccd.set_exposure_time(random.randint(1, 5))
         logger.info(await ccd.get_exposure_time())
-        logger.info(await ccd.get_temperature())
+        logger.info(await ccd.get_chip_temperature())
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
-        logger.info(await ccd.get_speed())
+        logger.info(await ccd.get_speed_token())
         data_shutter_closed = []
         if await ccd.get_acquisition_ready():
-            await ccd.set_acquisition_start(open_shutter=False)
+            await ccd.acquisition_start(open_shutter=False)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
             # Poll for acquisition status
             acquisition_busy = True
@@ -70,7 +69,7 @@ async def main():
 
         data_shutter_open = []
         if await ccd.get_acquisition_ready():
-            await ccd.set_acquisition_start(open_shutter=True)
+            await ccd.acquisition_start(open_shutter=True)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
             # Poll for acquisition status
             acquisition_busy = True
@@ -83,16 +82,16 @@ async def main():
             logger.info(f'Data with open shutter: {data_shutter_open}')
 
         noise_data = []
-        if acquisition_format == AcquisitionFormat.SPECTRA:
+        if acquisition_format == AcquisitionFormat.IMAGE:
             data_shutter_open_selected = data_shutter_open[0]['roi'][0]['yData']
-            data_shutter_closed_selected = data_shutter_open[0]['roi'][0]['yData']
+            data_shutter_closed_selected = data_shutter_closed[0]['roi'][0]['yData']
             noise_data = await subtract_dark_count(
                 data_shutter_open_selected, data_shutter_closed_selected, acquisition_format
             )
 
-        elif acquisition_format == AcquisitionFormat.IMAGE:
+        elif acquisition_format == AcquisitionFormat.SPECTRA:
             data_shutter_open_selected = data_shutter_open[0]['roi'][0]['xyData']
-            data_shutter_closed_selected = data_shutter_open[0]['roi'][0]['xyData']
+            data_shutter_closed_selected = data_shutter_closed[0]['roi'][0]['xyData']
             noise_data = await subtract_dark_count(
                 data_shutter_open_selected, data_shutter_closed_selected, acquisition_format
             )
