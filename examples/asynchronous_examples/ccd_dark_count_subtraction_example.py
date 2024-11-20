@@ -3,11 +3,30 @@ import random
 
 from loguru import logger
 
+from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.devices.device_manager import DeviceManager
 
 
+async def subtract_dark_count(
+    shutter_open_data: list, shutter_closed_data: list, acquisition_format: AcquisitionFormat
+) -> list:
+    noise_data = []
+    zipped_data = zip(shutter_open_data, shutter_closed_data)
+    if acquisition_format == AcquisitionFormat.SPECTRA:
+        for wavelength in zipped_data:
+            noise = wavelength[0][1] - wavelength[1][1]
+            noise_data.append([wavelength[0][0], noise])
+
+    if acquisition_format == AcquisitionFormat.IMAGE:
+        for pixel in zipped_data:
+            noise = pixel[0] - pixel[1]
+            noise_data.append(noise)
+    return noise_data
+
+
 async def main():
+    acquisition_format = AcquisitionFormat.IMAGE
     device_manager = DeviceManager(start_icl=True)
     await device_manager.start()
 
@@ -22,6 +41,7 @@ async def main():
     try:
         await ccd.set_acquisition_count(1)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
+        await ccd.set_acquisition_format(1, acquisition_format)
         await ccd.set_acquisition_abort()
         logger.info(await ccd.get_acquisition_count())
         logger.info(await ccd.get_clean_count())
@@ -34,6 +54,7 @@ async def main():
         logger.info(await ccd.get_temperature())
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
         logger.info(await ccd.get_speed())
+        data_shutter_closed = []
         if await ccd.get_acquisition_ready():
             await ccd.set_acquisition_start(open_shutter=False)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
@@ -45,8 +66,9 @@ async def main():
                 logger.info('Acquisition busy')
 
             data_shutter_closed = await ccd.get_acquisition_data()
-            logger.info(f"Data with closed shutter: {data_shutter_closed}")
+            logger.info(f'Data with closed shutter: {data_shutter_closed}')
 
+        data_shutter_open = []
         if await ccd.get_acquisition_ready():
             await ccd.set_acquisition_start(open_shutter=True)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
@@ -58,7 +80,25 @@ async def main():
                 logger.info('Acquisition busy')
 
             data_shutter_open = await ccd.get_acquisition_data()
-            logger.info(f"Data with open shutter: {data_shutter_open}")
+            logger.info(f'Data with open shutter: {data_shutter_open}')
+
+        noise_data = []
+        if acquisition_format == AcquisitionFormat.SPECTRA:
+            data_shutter_open_selected = data_shutter_open[0]['roi'][0]['yData']
+            data_shutter_closed_selected = data_shutter_open[0]['roi'][0]['yData']
+            noise_data = await subtract_dark_count(
+                data_shutter_open_selected, data_shutter_closed_selected, acquisition_format
+            )
+
+        elif acquisition_format == AcquisitionFormat.IMAGE:
+            data_shutter_open_selected = data_shutter_open[0]['roi'][0]['xyData']
+            data_shutter_closed_selected = data_shutter_open[0]['roi'][0]['xyData']
+            noise_data = await subtract_dark_count(
+                data_shutter_open_selected, data_shutter_closed_selected, acquisition_format
+            )
+
+        logger.info(f'Noise data: {noise_data}')
+
     finally:
         await ccd.close()
 
