@@ -83,8 +83,8 @@ async def main():
 
         noise_data = []
         if acquisition_format == AcquisitionFormat.IMAGE:
-            data_shutter_open_selected = data_shutter_open[0]['roi'][0]['yData']
-            data_shutter_closed_selected = data_shutter_closed[0]['roi'][0]['yData']
+            data_shutter_open_selected = data_shutter_open[0]['roi'][0]['yData'][0]
+            data_shutter_closed_selected = data_shutter_closed[0]['roi'][0]['yData'][0]
             noise_data = await subtract_dark_count(
                 data_shutter_open_selected, data_shutter_closed_selected, acquisition_format
             )
