@@ -49,6 +49,10 @@ async def main():
         await ccd.set_gain(0)  # High Light
         await ccd.set_speed(2)  # 1 MHz Ultra
 
+        ##pb
+        #set_center_wavelength call must occur before set_x_axis_conversion_type call. 
+        #center wavelength will be dynamically updated as part of range scan
+        await ccd.set_center_wavelength(mono.id(), 0)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
         await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
 
