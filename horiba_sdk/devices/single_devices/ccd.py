@@ -669,3 +669,20 @@ class ChargeCoupledDevice(AbstractDevice):
             },
         )
         return response.results['centerWavelengths']
+
+    @staticmethod
+    async def raman_convert(spectrum: list[float], excitation_wavelength: float) -> list[float]:
+        """Calculates the raman shift for every wavelength in the list relative to the excitation wavelength.
+
+        Args:
+            spectrum (list[float]): Wavelengths
+            excitation_wavelength: Excitation wavelength
+
+        Returns:
+            list[float]: Wavelengths converted to raman shifts
+        """
+        raman_values = []
+        for wave_length in spectrum:
+            raman_shift = ((1 / excitation_wavelength) - (1 / wave_length)) * (10**7)
+            raman_values.append(raman_shift)
+        return raman_values
