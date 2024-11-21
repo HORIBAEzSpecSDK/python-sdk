@@ -31,8 +31,11 @@ async def main():
         await ccd.set_trigger_input(True, 0, 0, 1)
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=True)
-            await asyncio.sleep(5)  # Wait a short period for the acquisition to start
-            await ccd.acquisition_abort()
+            while await ccd.get_acquisition_busy():
+                # CCD will be busy infinitely because it is waiting for a trigger that is not coming.
+                # That's why the abort command needs to be sent.
+                await asyncio.sleep(0.3)
+                await ccd.acquisition_abort()
             data = await ccd.get_acquisition_data()
 
             logger.info(f'Data when aborted while waiting for a trigger: {data}')
