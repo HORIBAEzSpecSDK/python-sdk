@@ -40,13 +40,13 @@ async def test_monochromator_init(async_device_manager_instance):
     # arrange
     async with async_device_manager_instance.monochromators[0] as monochromator:
         # act
-        await monochromator.home()
+        await monochromator.initialize()
 
         while await monochromator.is_busy():
             await asyncio.sleep(1)
 
         # assert
-        assert await monochromator.is_homed() is True
+        assert await monochromator.is_initialized() is True
 
 
 @pytest.mark.asyncio
@@ -146,7 +146,7 @@ async def test_monochromator_mirror(async_device_manager_instance):  # noqa: ARG
         expected_mirror_position_before = Monochromator.MirrorPosition.LATERAL
         expected_mirror_position_after = Monochromator.MirrorPosition.AXIAL
         timeout_s = 120
-        await monochromator.home()
+        await monochromator.initialize()
         current_time = 0
         await asyncio.sleep(0.4)
         while await monochromator.is_busy() and current_time < timeout_s:
@@ -187,7 +187,7 @@ async def test_monochromator_slit(async_device_manager_instance):  # noqa: ARG00
     # arrange
     async with async_device_manager_instance.monochromators[0] as monochromator:
         timeout_s = 120
-        await monochromator.home()
+        await monochromator.initialize()
         current_time = 0
         while await monochromator.is_busy() and current_time < timeout_s:
             await asyncio.sleep(1)
@@ -250,7 +250,7 @@ async def test_monochromator_shutter(async_device_manager_instance):
 async def test_monochromator_slit_step_position(async_device_manager_instance):  # noqa: ARG001
     # arrange
     async with async_device_manager_instance.monochromators[0] as monochromator:
-        await monochromator.home()
+        await monochromator.initialize()
         while await monochromator.is_busy():
             await asyncio.sleep(1)
 

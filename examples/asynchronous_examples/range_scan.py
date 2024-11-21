@@ -34,7 +34,7 @@ async def main():
 
     try:
         # mono configuration
-        await mono.home()
+        await mono.initialize()
         await wait_for_mono(mono)
         await mono.set_turret_grating(Monochromator.Grating.THIRD)
         await wait_for_mono(mono)

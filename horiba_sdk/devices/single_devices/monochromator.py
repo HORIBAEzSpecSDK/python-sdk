@@ -145,7 +145,7 @@ class Monochromator(AbstractDevice):
         response: Response = await super()._execute_command('mono_isBusy', {'index': self._id})
         return bool(response.results['busy'])
 
-    async def home(self) -> None:
+    async def initialize(self) -> None:
         """Starts the monochromator initialization process called "homing".
 
         Use :func:`Monochromator.is_busy()` to know if the operation is still taking place.
@@ -155,7 +155,7 @@ class Monochromator(AbstractDevice):
         """
         await super()._execute_command('mono_init', {'index': self._id})
 
-    async def is_homed(self) -> bool:
+    async def is_initialized(self) -> bool:
         """This command returns true when the mono is initialized. Otherwise, it returns false.
         Note: This command may also return false when the mono is busy with another command.
 

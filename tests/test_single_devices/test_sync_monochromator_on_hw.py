@@ -31,14 +31,14 @@ def test_monochromator_init(sync_device_manager_instance):
     # arrange
     with sync_device_manager_instance.monochromators[0] as monochromator:
         # act
-        monochromator.home()
+        monochromator.initialize()
 
         time.sleep(0.3)
         while monochromator.is_busy():
             time.sleep(1)
 
         # assert
-        assert monochromator.is_homed() is True
+        assert monochromator.is_initialized() is True
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
@@ -158,7 +158,7 @@ def test_monochromator_mirror(sync_device_manager_instance):  # noqa: ARG001
 def test_monochromator_slit(sync_device_manager_instance):  # noqa: ARG001
     # arrange
     with sync_device_manager_instance.monochromators[0] as monochromator:
-        monochromator.home()
+        monochromator.initialize()
         while monochromator.is_busy():
             time.sleep(1)
 
@@ -207,7 +207,7 @@ def test_monochromator_shutter(sync_device_manager_instance):
 def test_monochromator_slit_step_position(sync_device_manager_instance):  # noqa: ARG001
     # arrange
     with sync_device_manager_instance.monochromators[0] as monochromator:
-        monochromator.home()
+        monochromator.initialize()
         while monochromator.is_busy():
             time.sleep(1)
 
