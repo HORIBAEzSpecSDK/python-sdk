@@ -59,7 +59,6 @@ async def main():
         await ccd.set_region_of_interest(
             1, 0, 0, chip_x, chip_y, 1, chip_y
         )  # Set default ROI, if you want a custom ROI, pass the parameters
-
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
 
         xy_data = [[0], [0]]
