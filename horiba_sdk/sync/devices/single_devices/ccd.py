@@ -584,9 +584,9 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = super()._execute_command('ccd_getAcquisitionBusy', {'index': self._id})
         return bool(response.results['isBusy'])
 
-    def acquisition_abort(self, reset_port: bool = True) -> None:
+    def acquisition_abort(self) -> None:
         """Stops the acquisition of the CCD"""
-        super()._execute_command('ccd_acquisitionStart', {'index': self._id, 'resetPort': reset_port})
+        super()._execute_command('ccd_acquisitionStart', {'index': self._id})
 
     def get_acquisition_data(self) -> dict[Any, Any]:
         """Retrieves data from the last acquisition.
