@@ -21,7 +21,7 @@ def test_ccd_temperature(fake_sync_icl_exe, fake_sync_device_manager):  # noqa: 
     # act
     with fake_sync_device_manager.charge_coupled_devices[0] as ccd:
         # assert
-        temperature = ccd.get_temperature()
+        temperature = ccd.get_chip_temperature()
         assert temperature < 0.0
 
 

@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Any, List, Optional, final
+from typing import Any, Optional, final
 
 from loguru import logger
 from overrides import override
@@ -141,6 +141,27 @@ class ChargeCoupledDevice(AbstractDevice):
             Exception: When an error occurred on the device side
         """
         super()._execute_command('ccd_setSpeed', {'index': self._id, 'token': speed_token})
+
+    def get_parallel_speed(self) -> int:
+        """Gets the current parallel speed token
+
+        Returns:
+            int: current parallel speed token
+
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        response: Response = super()._execute_command('ccd_getParallelSpeed', {'index': self._id})
+        parallel_speed_token: int = int(response.results['token'])
+        return parallel_speed_token
+
+    def set_parallel_speed(self, parallel_speed_token: int) -> None:
+        """Sets the desired parallel speed token
+
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        super()._execute_command('ccd_setParallelSpeed', {'index': self._id, 'token': parallel_speed_token})
 
     def get_fit_parameters(self) -> list[int]:
         """Returns the fit parameters of the CCD
@@ -324,7 +345,7 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = super()._execute_command('ccd_getDataSize', {'index': self._id})
         return int(response.results['size'])
 
-    def get_temperature(self) -> float:
+    def get_chip_temperature(self) -> float:
         """Chip temperature of the CCD.
 
         Returns:
@@ -545,7 +566,7 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = super()._execute_command('ccd_getAcquisitionReady', {'index': self._id})
         return bool(response.results['ready'])
 
-    def set_acquisition_start(self, open_shutter: bool) -> None:
+    def acquisition_start(self, open_shutter: bool) -> None:
         """Starts an acquisition that has been set up according to the previously defined acquisition parameters.
 
         Note: To specify the acquisiton parameters please see set_region_of_interest, set_x_axis_conversion_type.
@@ -556,16 +577,16 @@ class ChargeCoupledDevice(AbstractDevice):
         Raises:
             Exception: When an error occurred on the device side
         """
-        super()._execute_command('ccd_setAcquisitionStart', {'index': self._id, 'openShutter': open_shutter})
+        super()._execute_command('ccd_acquisitionStart', {'index': self._id, 'openShutter': open_shutter})
 
     def get_acquisition_busy(self) -> bool:
         """Returns true if the CCD is busy with the acquisition"""
         response: Response = super()._execute_command('ccd_getAcquisitionBusy', {'index': self._id})
         return bool(response.results['isBusy'])
 
-    def set_acquisition_abort(self, reset_port: bool = True) -> None:
+    def acquisition_abort(self, reset_port: bool = True) -> None:
         """Stops the acquisition of the CCD"""
-        super()._execute_command('ccd_setAcquisitionAbort', {'index': self._id, 'resetPort': reset_port})
+        super()._execute_command('ccd_acquisitionStart', {'index': self._id, 'resetPort': reset_port})
 
     def get_acquisition_data(self) -> dict[Any, Any]:
         """Retrieves data from the last acquisition.
@@ -604,7 +625,7 @@ class ChargeCoupledDevice(AbstractDevice):
 
     def range_mode_center_wavelengths(
         self, monochromator_index: int, start_wavelength: float, end_wavelength: float, pixel_overlap: int
-    ) -> List[float]:
+    ) -> list[float]:
         """Finds the center wavelength positions based on the input range and pixel overlap.
 
         The following commands are prerequisites and should be called prior to using this command:

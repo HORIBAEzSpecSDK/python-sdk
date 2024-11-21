@@ -34,7 +34,7 @@ def main():
     ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
     ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
 
-    ccd.set_acquisition_start(open_shutter=False)
+    ccd.acquisition_start(open_shutter=False)
     while ccd.get_acquisition_busy():
         time.sleep(1)
         logger.info('acquisition busy, sleeping 1s')

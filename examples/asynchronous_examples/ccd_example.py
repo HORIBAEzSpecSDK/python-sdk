@@ -30,11 +30,11 @@ async def main():
         logger.info(await ccd.get_exposure_time())
         await ccd.set_exposure_time(random.randint(1, 5))
         logger.info(await ccd.get_exposure_time())
-        logger.info(await ccd.get_temperature())
+        logger.info(await ccd.get_chip_temperature())
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
         logger.info(await ccd.get_speed())
         if await ccd.get_acquisition_ready():
-            await ccd.set_acquisition_start(open_shutter=True)
+            await ccd.acquisition_start(open_shutter=True)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
             # Poll for acquisition status
             acquisition_busy = True
