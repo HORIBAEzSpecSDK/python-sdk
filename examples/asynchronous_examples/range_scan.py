@@ -34,7 +34,7 @@ async def main():
 
     try:
         # mono configuration
-        await mono.home()
+        await mono.initialize()
         await wait_for_mono(mono)
         await mono.set_turret_grating(Monochromator.Grating.SECOND)
         await wait_for_mono(mono)
@@ -111,7 +111,7 @@ async def main():
 async def capture(ccd):
     xy_data = [[0], [0]]
     if await ccd.get_acquisition_ready():
-        await ccd.set_acquisition_start(open_shutter=True)
+        await ccd.acquisition_start(open_shutter=True)
         await asyncio.sleep(1)  # Wait a short period for the acquisition to start
         await wait_for_ccd(ccd)
 

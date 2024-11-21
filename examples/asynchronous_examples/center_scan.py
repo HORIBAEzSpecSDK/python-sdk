@@ -30,7 +30,7 @@ async def main():
 
     try:
         # mono configuration
-        await mono.home()
+        await mono.initialize()
         await wait_for_mono(mono)
         await mono.set_turret_grating(Monochromator.Grating.THIRD)
         await wait_for_mono(mono)
@@ -56,15 +56,16 @@ async def main():
         await ccd.set_speed(2)  # 1 MHz Ultra
         await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
         await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
-        # Set default ROI, if you want a custom ROI, pass the parameters
-        await ccd.set_region_of_interest(1, 0, 0, chip_x, chip_y, 1, chip_y)  
-        await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
+        await ccd.set_region_of_interest(
+            1, 0, 0, chip_x, chip_y, 1, chip_y
+        )  # Set default ROI, if you want a custom ROI, pass the parameters
 
+        await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
 
         xy_data = [[0], [0]]
 
         if await ccd.get_acquisition_ready():
-            await ccd.set_acquisition_start(open_shutter=True)
+            await ccd.acquisition_start(open_shutter=True)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
             await wait_for_ccd(ccd)
 
@@ -72,7 +73,7 @@ async def main():
             xy_data = raw_data[0]['roi'][0]['xyData']
             # for AcquisitionFormat.IMAGE:
             # xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData'][0]]
-            with open('outputcsv.csv', 'w', newline = "") as csvfile:
+            with open('outputcsv.csv', 'w', newline='') as csvfile:
                 w = csv.writer(csvfile)
                 fields = ['wavelength', 'intensity']
                 w.writerow(fields)
