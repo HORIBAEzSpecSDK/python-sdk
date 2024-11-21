@@ -29,28 +29,49 @@ async def main():
     await wait_for_ccd(ccd)
 
     start_wavelength = 200
-    end_wavelength = 600
+    end_wavelength = 1000
     spectrum = [[0], [0]]
 
     try:
         # mono configuration
         await mono.initialize()
         await wait_for_mono(mono)
-        await mono.set_turret_grating(Monochromator.Grating.THIRD)
+        await mono.set_turret_grating(Monochromator.Grating.SECOND)
+        await wait_for_mono(mono)
+        await mono.set_mirror_position(Monochromator.Mirror.ENTRANCE, Monochromator.MirrorPosition.AXIAL)
+        await wait_for_mono(mono)
+        await mono.set_slit_position(Monochromator.Slit.A, 0.5)
         await wait_for_mono(mono)
 
         # ccd configuration
         await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
-        await ccd.set_exposure_time(50)
+        await ccd.set_exposure_time(100)
         await ccd.set_gain(0)  # High Light
         await ccd.set_speed(2)  # 1 MHz Ultra
 
+        ##pb
+        #set_center_wavelength call must occur before set_x_axis_conversion_type call. 
+        #center wavelength will be dynamically updated as part of range scan
+        await ccd.set_center_wavelength(mono.id(), 0)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
         await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
-        await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
 
-        center_wavelengths = await ccd.range_mode_center_wavelengths(mono.id(), start_wavelength, end_wavelength, 10)
+        ##pb
+        ccd_configuration = await ccd.get_configuration()
+
+        ##get chip size info
+        chip_x = int(ccd_configuration['chipWidth'])
+        chip_y = int(ccd_configuration['chipHeight'])
+        await ccd.set_region_of_interest(
+            1, 0, 0, chip_x, chip_y, 1, chip_y
+        )  # Set default ROI, if you want a custom ROI, pass the parameters
+
+        center_wavelengths = await ccd.range_mode_center_wavelengths(mono.id(), start_wavelength, end_wavelength, 100)
         logger.info(f'Number of captures: {len(center_wavelengths)}')
+
+        with open('centerwavelengths.txt', 'w') as f:
+            f.write(str(center_wavelengths))
+            f.close()
 
         captures = []
         for center_wavelength in center_wavelengths:
@@ -59,7 +80,7 @@ async def main():
             mono_wavelength = await mono.get_current_wavelength()
             logger.info(f'Mono wavelength {mono_wavelength}')
 
-            await ccd.set_center_wavelength(mono_wavelength)
+            await ccd.set_center_wavelength(mono.id(), mono_wavelength)
 
             xy_data = await capture(ccd)
             captures.append(xy_data)
@@ -68,16 +89,23 @@ async def main():
             captures
         )  # You can implement your own stitching by subclassing the SpectraStitch interface
         spectrum = stitch.stitched_spectra()
+        # pb
+        filtered_spectrum = await filter_values(start_wavelength, end_wavelength, spectrum[0], spectrum[1])
+        with open('plot_values.txt', 'w') as t:
+            t.write(str(spectrum))
+            t.close()
 
     finally:
         await ccd.close()
         logger.info('Waiting before closing Monochromator')
-        await asyncio.sleep(15)
+        await asyncio.sleep(1)
         await mono.close()
 
     await device_manager.stop()
 
-    await plot_values(start_wavelength, end_wavelength, spectrum)
+    # await plot_values(start_wavelength, end_wavelength, spectrum)
+    # pb
+    await plot_values(start_wavelength, end_wavelength, filtered_spectrum)
 
 
 async def capture(ccd):
@@ -94,14 +122,31 @@ async def capture(ccd):
         # for AcquisitionFormat.IMAGE:
         xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData'][0]]
         logger.info(xy_data)
+
     else:
         raise Exception('CCD not ready for acquisition')
     return xy_data
 
 
+async def filter_values(start_wavelength, end_wavelength, wavelength_values, intensity_values):
+    filtered_wavelengths = []
+    filtered_intensities = []
+    for wl, inten in zip(wavelength_values, intensity_values):
+        if start_wavelength <= wl <= end_wavelength:
+            filtered_wavelengths.append(wl)
+            filtered_intensities.append(inten)
+    filtered_xy = [filtered_wavelengths, filtered_intensities]
+    return filtered_xy
+
+
 async def plot_values(start_wavelength, end_wavelength, xy_data):
-    x_values = [data[0] for data in xy_data]
-    y_values = [data[1] for data in xy_data]
+    # x_values = [data[0] for data in xy_data]
+    # pb
+    x_values = xy_data[0]
+    # y_values = [data[1] for data in xy_data]
+    # pb
+    y_values = xy_data[1]
+
     # for AcquisitionFormat.IMAGE:
     # x_values = xy_data[0]
     # y_values = xy_data[1]
