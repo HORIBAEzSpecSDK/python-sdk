@@ -18,7 +18,7 @@ async def subtract_dark_count(
             noise = wavelength[0][1] - wavelength[1][1]
             noise_data.append([wavelength[0][0], noise])
 
-    if acquisition_format == AcquisitionFormat.IMAGE:
+    elif acquisition_format == AcquisitionFormat.IMAGE:
         for pixel in zipped_data:
             noise = pixel[0] - pixel[1]
             noise_data.append(noise)
