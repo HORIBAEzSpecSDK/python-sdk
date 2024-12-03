@@ -2,16 +2,16 @@
 
 <div align="center">
 
-[![build](https://github.com/ThatsTheEnd/horiba-python-sdk/actions/workflows/build.yml/badge.svg)](https://github.com/ThatsTheEnd/horiba-python-sdk/actions/workflows/build.yml)
+[![build](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/actions/workflows/build.yml/badge.svg)](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/actions/workflows/build.yml)
 [![PyPI - Version](https://img.shields.io/pypi/v/horiba-sdk)](https://pypi.org/project/horiba-sdk/)
 [![Python Version](https://img.shields.io/pypi/pyversions/horiba-sdk.svg)](https://pypi.org/project/horiba-sdk/)
-[![Dependencies Status](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)](https://github.com/ThatsTheEnd/horiba-python-sdk/pulls?utf8=%E2%9C%93&q=is%3Apr%20author%3Aapp%2Fdependabot)
+[![Dependencies Status](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/pulls?utf8=%E2%9C%93&q=is%3Apr%20author%3Aapp%2Fdependabot)
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Security: bandit](https://img.shields.io/badge/security-bandit-green.svg)](https://github.com/PyCQA/bandit)
-[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/.pre-commit-config.yaml)
-[![Semantic Versions](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--versions-e10079.svg)](https://github.com/ThatsTheEnd/horiba-python-sdk/releases)
-[![License](https://img.shields.io/github/license/ThatsTheEnd/horiba-python-sdk)](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/LICENSE)
+[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/blob/master/.pre-commit-config.yaml)
+[![Semantic Versions](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--versions-e10079.svg)](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/releases)
+[![License](https://img.shields.io/github/license/HORIBAEzSpecSDK/horiba-python-sdk)](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/blob/master/LICENSE)
 ![Coverage Report](assets/images/coverage.svg)
 [![Documentation Status](https://readthedocs.org/projects/horiba-python-sdk/badge/?version=latest)](https://horiba-python-sdk.readthedocs.io/en/latest/?badge=latest)
 
@@ -155,7 +155,7 @@ The communication between SDK and ICL is websocket based. I.e. in essence the IC
 1. Clone the repo:
   
   ```bash
-  git clone https://github.com/ThatsTheEnd/horiba-python-sdk.git
+  git clone https://github.com/HORIBAEzSpecSDK/horiba-python-sdk.git
   cd horiba-python-sdk
   ```
 
@@ -225,10 +225,10 @@ Building a new version of the application contains steps:
 
 ## Makefile usage
 
-[`Makefile`](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/Makefile) contains a lot of functions for faster development.
+[`Makefile`](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/blob/master/Makefile) contains a lot of functions for faster development.
 
 <details>
-<summary>1. Download and remove Poetry</summary>
+<summary>1. Installation of Poetry</summary>
 <p>
 
 To download and install Poetry run:
@@ -291,6 +291,8 @@ Update all dev libraries to the latest version using one comand
 ```bash
 make update-dev-deps
 ```
+</p>
+</details>
 
 <details>
 <summary>4. Code security</summary>
@@ -305,8 +307,6 @@ This command launches `Poetry` integrity checks as well as identifies security i
 ```bash
 make check-safety
 ```
-
-</p>
 
 
 </p>
@@ -410,7 +410,7 @@ Remove docker image with
 make docker-remove
 ```
 
-More information [about docker](https://github.com/ThatsTheEnd/horiba-python-sdk/tree/master/docker).
+More information [about docker](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/tree/master/docker).
 
 </p>
 </details>
@@ -447,7 +447,6 @@ Or to remove all above run:
 ```bash
 make cleanup
 ```
-
 </p>
 </details>
 
@@ -470,9 +469,9 @@ the documentation accordingly
 
 ## 🛡 License
 
-[![License](https://img.shields.io/github/license/ThatsTheEnd/horiba-python-sdk)](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/HORIBAEzSpecSDK/horiba-python-sdk)](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/blob/master/LICENSE)
 
-This project is licensed under the terms of the `MIT` license. See [LICENSE](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/LICENSE) for more details.
+This project is licensed under the terms of the `MIT` license. See [LICENSE](https://github.com/HORIBAEzSpecSDK/horiba-python-sdk/blob/master/LICENSE) for more details.
 
 ## 📃 Citation
 
@@ -483,7 +482,7 @@ This project is licensed under the terms of the `MIT` license. See [LICENSE](htt
   year = {2023},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/ThatsTheEnd/horiba-python-sdk}}
+  howpublished = {\url{https://github.com/HORIBAEzSpecSDK/horiba-python-sdk}}
 }
 ```
 
