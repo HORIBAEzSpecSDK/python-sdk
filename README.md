@@ -1,4 +1,4 @@
-# horiba-python-sdk
+# HORIBA Python SDK
 
 <div align="center">
 
@@ -15,7 +15,6 @@
 ![Coverage Report](assets/images/coverage.svg)
 [![Documentation Status](https://readthedocs.org/projects/horiba-python-sdk/badge/?version=latest)](https://horiba-python-sdk.readthedocs.io/en/latest/?badge=latest)
 
-'horiba-sdk' is a package that provides source code for the development with Horiba devices
 
 </div>
 
@@ -34,11 +33,20 @@ ___
 
 ___
 
-**📦 Prerequisites**
+# 📦 About this repository
+`horiba-sdk` is a package that provides source code for the development of custom applications that include interaction with Horiba devices, namely monochromators and multichannel detectors (e.g. CCD cameras).
+Future versions of this package will include access to more devices. The SDK exists for several programming languages:
+- Python (this repo)
+- [C#](https://github.com/HORIBAEzSpecSDK/dotnet-sdk)
+- [C++](https://github.com/HORIBAEzSpecSDK/cpp-sdk)
+- [LabVIEW](https://github.com/HORIBAEzSpecSDK/labview-sdk)
 
-* Python `>=3.9`
-* ICL.exe installed as part of the Horiba SDK, licensed and activated
+# ☑️ Prerequisites
 
+To use this package, the following conditions must be met:
+* Python `>=3.9` is installed
+* ICL.exe installed as part of the `Horiba SDK`, licensed and activated. The Horiba SDK can be purchased by contacting the [Horiba Support](https://www.horiba.com/int/scientific/contact/) and sending a message to the `Scientific` business segment, specifying `no division` and selecting the `sales` department
+*
   <details>
   <summary>To make sure that the USB devices do not get disconnected, uncheck the following boxes in the properties</summary>
 
@@ -46,7 +54,7 @@ ___
 
   </details>
 
-## 🛠️ Usage
+# 🛠️ Getting Started
 
 <details>
 <summary>Video of the steps below</summary>
@@ -55,7 +63,7 @@ ___
 
 </details>
 
-0. (Optional but recommended) Work in a virtual environment:
+1. (Optional but recommended) Work in a virtual environment:
 
    Navigate to the (empty) project folder you want to work and run:
 
@@ -116,17 +124,40 @@ ___
    ```bash
    python center_scan.py
    ```
+# 🔗 Examples
+## Getting Started
+The files in the folder [examples/asynchronous_examples/](examples/asynchronous_examples) can be used as a starting point for a custom application.
+
+## Tests
+The files in the folder [tests/test_single_devices](tests/test_single_devices) can be used to explore further functionality.
+
+## Asynchronous vs Synchronous Examples
+This SDK is based on Websocket communication. The nature of this communication is asynchronous by its design.
+The way this SDK uses websockets is to send requests to the underlying `instrument control layer (ICL)` and get a (nearly immediate) reply back.
+This is true even for commands that longer to execute, e.g. to move the mono or to acquire data from the CCD. The way this is handled is by sending an acknowledgement back that the command is received and being processed. The user has then to inquire if `mono_isBusy` to see when the hardware is free to receive the next command.
+That means that every `async` function can be `awaited` immediately and handled just like any other function.
+To learn more about async and await, [check out this introduction](https://www.pythontutorial.net/python-concurrency/python-async-await/) or [take a deeper dive here](https://medium.com/@danielwume/an-in-depth-guide-to-asyncio-and-await-in-python-059c3ecc9d96).
+
+
+
+# 🏗️ Architecture
+The functionality is distributed over two parts, the `instrument control layer (ICL)` and the `github source code`. This split is shown in the following image:
+![SDK Split](docs/SDK_Overview_Dark.png#gh-dark-mode-only "SDK Split")
+![SDK Split](docs/SDK_Overview_Dark.png#gh-light-mode-only "SDK Split")
+
+The ICL itself is sold and distributed by Horiba. The source code to communicate with the ICL and drive the instruments is located in this repo for Python, but can be also found for C#, C++ and LabVIEW as described above.
+The communication between SDK and ICL is websocket based. I.e. in essence the ICL is steered by a `command and control` pattern where commands and their replies are JSON commands.
 
 ## 👩‍💻 First steps as contributor
 
-### Clone and setup the repo
+### Clone and set up the repo
 
 1. Clone the repo:
-
-```bash
-git clone https://github.com/ThatsTheEnd/horiba-python-sdk.git
-cd horiba-python-sdk
-```
+  
+  ```bash
+  git clone https://github.com/ThatsTheEnd/horiba-python-sdk.git
+  cd horiba-python-sdk
+  ```
 
 2. If you don't have `Poetry` installed run:
 
@@ -225,7 +256,7 @@ Install requirements:
 make install
 ```
 
-Pre-commit hooks coulb be installed after `git init` via
+Pre-commit hooks could be installed after `git init` via
 
 ```bash
 make pre-commit-install
@@ -276,7 +307,7 @@ make check-safety
 ```
 
 </p>
-</details>
+
 
 </p>
 </details>
@@ -441,7 +472,7 @@ the documentation accordingly
 ### Development features
 
 - Supports for `Python 3.9` and higher.
-- [`Poetry`](https://python-poetry.org/) as the dependencies manager. See configuration in [`pyproject.toml`](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/pyproject.toml).
+- [`Poetry`](https://python-poetry.org/) as the dependencies' manager. See configuration in [`pyproject.toml`](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/pyproject.toml).
 - Automatic codestyle with [`ruff`](https://github.com/astral-sh/ruff)
 - Ready-to-use [`pre-commit`](https://pre-commit.com/) hooks with code-formatting.
 - Type checks with [`mypy`](https://mypy.readthedocs.io); security checks with [`safety`](https://github.com/pyupio/safety) and [`bandit`](https://github.com/PyCQA/bandit)
@@ -452,7 +483,7 @@ the documentation accordingly
 
 - `GitHub` integration: issue and pr templates.
 - `Github Actions` with predefined [build workflow](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/.github/workflows/build.yml) as the default CI/CD.
-- Everything is already set up for security checks, codestyle checks, code formatting, testing, linting, docker builds, etc with [`Makefile`](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/Makefile#L89). More details in [makefile-usage](#makefile-usage).
+- Everything is already set up for security checks, codestyle checks, code formatting, testing, linting, docker builds, etc. with [`Makefile`](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/Makefile#L89). More details in [makefile-usage](#makefile-usage).
 - [Dockerfile](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/docker/Dockerfile) for your package.
 - Always up-to-date dependencies with [`@dependabot`](https://dependabot.com/). You will only [enable it](https://docs.github.com/en/github/administering-a-repository/enabling-and-disabling-version-updates#enabling-github-dependabot-version-updates).
 - Automatic drafts of new releases with [`Release Drafter`](https://github.com/marketplace/actions/release-drafter). You may see the list of labels in [`release-drafter.yml`](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/.github/release-drafter.yml). Works perfectly with [Semantic Versions](https://semver.org/) specification.
@@ -462,7 +493,7 @@ the documentation accordingly
 - Ready-to-use [Pull Requests templates](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/.github/PULL_REQUEST_TEMPLATE.md) and several [Issue templates](https://github.com/ThatsTheEnd/horiba-python-sdk/tree/master/.github/ISSUE_TEMPLATE).
 - Files such as: `LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `SECURITY.md` are generated automatically.
 - [Semantic Versions](https://semver.org/) specification with [`Release Drafter`](https://github.com/marketplace/actions/release-drafter).
-<!-- - [`Stale bot`](https://github.com/apps/stale) that closes abandoned issues after a period of inactivity. (You will only [need to setup free plan](https://github.com/marketplace/stale)). Configuration is [here](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/.github/.stale.yml). -->
+<!-- - [`Stale bot`](https://github.com/apps/stale) that closes abandoned issues after a period of inactivity. (You will only [need to set up free plan](https://github.com/marketplace/stale)). Configuration is [here](https://github.com/ThatsTheEnd/horiba-python-sdk/blob/master/.github/.stale.yml). -->
 
 
 ## 📈 Releases
