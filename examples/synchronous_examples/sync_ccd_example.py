@@ -30,7 +30,7 @@ def main():
 
     ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
     ccd.set_acquisition_count(1)
-    ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
+    ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
     ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
     ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
 
