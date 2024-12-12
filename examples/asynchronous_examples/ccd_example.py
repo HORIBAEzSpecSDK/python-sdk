@@ -28,22 +28,23 @@ async def main():
         logger.info(await ccd.get_gain_token())
         logger.info(await ccd.get_chip_size())
         logger.info(await ccd.get_exposure_time())
-        await ccd.set_exposure_time(random.randint(1, 5))
+        exposure_time = random.randint(1, 5)
+        await ccd.set_exposure_time(exposure_time)
         logger.info(await ccd.get_exposure_time())
         logger.info(await ccd.get_chip_temperature())
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
         logger.info(await ccd.get_speed_token())
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=True)
-            await asyncio.sleep(1)  # Wait a short period for the acquisition to start
+            await asyncio.sleep(exposure_time)  # While the acquisition happens, we can yield the processor
             # Poll for acquisition status
             acquisition_busy = True
             while acquisition_busy:
                 acquisition_busy = await ccd.get_acquisition_busy()
-                await asyncio.sleep(0.3)
+                await asyncio.sleep(0.1)  # Acquisition should be done, so we can poll pretty fast
                 logger.info('Acquisition busy')
-
-            logger.info(await ccd.get_acquisition_data())
+            my_ccd_data = await ccd.get_acquisition_data()
+            logger.info(my_ccd_data)
     finally:
         await ccd.close()
 

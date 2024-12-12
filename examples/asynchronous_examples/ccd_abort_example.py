@@ -41,6 +41,9 @@ async def main():
             logger.info(f'Data when aborted while waiting for a trigger: {data}')
 
     finally:
+        # restart the CCD to reset the trigger
+        await ccd.restart()
+        await asyncio.sleep(7)
         await ccd.close()
 
     await device_manager.stop()

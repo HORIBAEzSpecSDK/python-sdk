@@ -74,7 +74,7 @@ async def main():
 if __name__ == '__main__':
     """
     When you import the loguru module, a default logger is created. This main function removes this default logger
-    and adds a new logger that has an increasing level.
+    and adds a new logger that has an different log level.
     """
     logger.remove()
     # Use which logger level you need
