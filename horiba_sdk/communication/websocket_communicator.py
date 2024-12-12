@@ -166,13 +166,13 @@ class WebsocketCommunicator(AbstractCommunicator):
 
     def register_binary_message_callback(self, callback: Callable[[bytes], Any]) -> None:
         """Registers a callback to be called with every incoming binary message."""
-        logger.info('Binary message callback registered.')
+        logger.debug('Binary message callback registered.')
         self.binary_message_callback = callback
 
     async def _receive_data(self) -> None:
         try:
             async for message in self.websocket:  # type: ignore
-                logger.info(f'Received message: {message!r}')
+                logger.debug(f'Received message: {message!r}')
                 if isinstance(message, str):
                     await self.json_message_queue.put(message)
                 elif isinstance(message, bytes):

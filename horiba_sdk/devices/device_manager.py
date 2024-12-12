@@ -33,6 +33,7 @@ https://docs.python.org/3/library/typing.html#typing.TYPE_CHECKING
 import asyncio
 import importlib.resources
 import platform
+import time
 from pathlib import Path
 from typing import Optional, final
 
@@ -129,6 +130,8 @@ class DeviceManager(AbstractDeviceManager):
             logger.info('icl not running, starting it...')
             # subprocess.Popen([r'C:\Program Files\HORIBA Scientific\SDK\icl.exe'])
             self._icl_process = await asyncio.create_subprocess_exec(r'C:\Program Files\HORIBA Scientific\SDK\icl.exe')
+            await asyncio.sleep(4)
+
         # except subprocess.CalledProcessError:
         #    logger.error('Failed to start ICL software.')
         # TODO: [saga] is this the best way handle exceptions?

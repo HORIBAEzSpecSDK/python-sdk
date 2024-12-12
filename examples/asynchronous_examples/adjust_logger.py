@@ -1,5 +1,23 @@
+"""
+This example demonstrates how to adjust the logging level. This might be necessary because too much debugging
+information leads to IDE behaviours that might be too sluggish.
+
+Log levels are a widely used concept in logging. They specify the severity of a log record so that messages can be
+filtered or prioritized based on how urgent they are.
+Loguru offers seven unique log levels, and each one is associated with an integer value as shown in the list below:
+
+TRACE (5): used to record fine-grained information about the program's execution path for diagnostic purposes.
+DEBUG (10): used by developers to record messages for debugging purposes.
+INFO (20): used to record informational messages that describe the normal operation of the program.
+SUCCESS (25): similar to INFO but used to indicate the success of an operation.
+WARNING (30): used to indicate an unusual event that may require further investigation.
+ERROR (40): used to record error conditions that affected a specific operation.
+CRITICAL (50): used to record error conditions that prevent a core function from working.
+"""
+
 import asyncio
 import random
+import sys
 
 from loguru import logger
 
@@ -51,4 +69,10 @@ async def main():
 
 
 if __name__ == '__main__':
+    """
+    When you import the loguru module, a default logger is created. This main function removes this default logger
+    and adds a new logger that has an increasing level.
+    """
+    logger.remove(0)
+    logger.add(sys.stderr, level="INFO")
     asyncio.run(main())
