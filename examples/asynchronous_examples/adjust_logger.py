@@ -1,5 +1,7 @@
 """
-This example demonstrates how to adjust the logging level. This might be necessary because too much debugging
+This example demonstrates how to adjust the logging level.
+It explains how logging is enabled and disabled for the SDK library.
+This might be necessary because too much debugging
 information leads to IDE behaviours that might be too sluggish.
 
 Log levels are a widely used concept in logging. They specify the severity of a log record so that messages can be
@@ -26,7 +28,8 @@ from horiba_sdk.devices.device_manager import DeviceManager
 
 
 async def main():
-    device_manager = DeviceManager(start_icl=True)
+    # This enables specifically logging messages from the horiba SDK library
+    device_manager = DeviceManager(start_icl=True, enable_logging=True)
     await device_manager.start()
 
     if not device_manager.charge_coupled_devices:
@@ -73,6 +76,9 @@ if __name__ == '__main__':
     When you import the loguru module, a default logger is created. This main function removes this default logger
     and adds a new logger that has an increasing level.
     """
-    logger.remove(0)
+    logger.remove()
+    # Use which logger level you need
+    # logger.add(sys.stdout, level='TRACE')
+    # logger.add(sys.stderr, level="DEBUG")
     logger.add(sys.stderr, level="INFO")
     asyncio.run(main())
