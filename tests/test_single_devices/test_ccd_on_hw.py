@@ -1,6 +1,7 @@
 import asyncio
 import os
 import random
+from contextlib import suppress
 
 import pytest
 from loguru import logger
@@ -391,11 +392,10 @@ async def test_ccd_acquisition_abort(event_loop, async_device_manager_instance):
 
             acquisition_busy_before_abort = await ccd.get_acquisition_busy()
             await asyncio.sleep(0.2)
-            try:
-                await ccd.acquisition_abort()
             # aborting throws an error at the moment, for whatever reason, but it works
-            except Exception:
-                pass
+            with suppress(Exception):
+                await ccd.acquisition_abort()
+
             await asyncio.sleep(2)
             acquisition_busy_after_abort = await ccd.get_acquisition_busy()
 
