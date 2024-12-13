@@ -486,6 +486,7 @@ This project is licensed under the terms of the `MIT` license. See [LICENSE](htt
 }
 ```
 
+
 ## Credits [![🚀 Your next Python package needs a bleeding-edge project structure.](https://img.shields.io/badge/python--package--template-%F0%9F%9A%80-brightgreen)](https://github.com/TezRomacH/python-package-template)
 
 This project was generated with [`python-package-template`](https://github.com/TezRomacH/python-package-template)
