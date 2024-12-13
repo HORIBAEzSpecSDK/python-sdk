@@ -147,7 +147,7 @@ class Monochromator(AbstractDevice):
         response: Response = super()._execute_command('mono_isBusy', {'index': self._id})
         return bool(response.results['busy'])
 
-    def home(self) -> None:
+    def initialize(self) -> None:
         """Starts the monochromator initialization process called "homing".
 
         Use :func:`Monochromator.is_busy()` to know if the operation is still taking place.
@@ -156,6 +156,19 @@ class Monochromator(AbstractDevice):
             Exception: When an error occured on the device side
         """
         super()._execute_command('mono_init', {'index': self._id})
+
+    def is_initialized(self) -> bool:
+        """This command returns true when the mono is initialized. Otherwise, it returns false.
+        Note: This command may also return false when the mono is busy with another command.
+
+        Returns:
+            bool: If the monochromator is initialized or not
+
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        response: Response = super()._execute_command('mono_isInitialized', {'index': self._id})
+        return bool(response.results['initialized'])
 
     def configuration(self) -> dict[str, Any]:
         """Returns the configuration of the monochromator.

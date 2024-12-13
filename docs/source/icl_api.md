@@ -58,6 +58,8 @@ This document describes the remote command and data API provided by the ICL.
     - [ccd\_setGain](#ccd_setgain)
     - [ccd\_getSpeed](#ccd_getspeed)
     - [ccd\_setSpeed](#ccd_setspeed)
+    - [ccd\_getParallelSpeed](#ccd_getparallelspeed)
+    - [ccd\_setParallelSpeed](#ccd_setparallelspeed)
     - [ccd\_getFitParams](#ccd_getfitparams)
     - [ccd\_getExposureTime](#ccd_getexposuretime)
     - [ccd\_setExposureTime](#ccd_setexposuretime)
@@ -76,8 +78,8 @@ This document describes the remote command and data API provided by the ICL.
     - [ccd\_setTriggerIn](#ccd_settriggerin)
     - [ccd\_getSignalOut](#ccd_getsignalout)
     - [ccd\_setSignalOut](#ccd_setsignalout)
-    - [ccd\_getAcquisitionReady](#ccd_getacquisitionready)
-    - [ccd\_setAcquisitionStart](#ccd_setacquisitionstart)
+    - [ccd\_acquisitionStart](#ccd_acquisitionstart)
+    - [ccd\_acquisitionAbort](#ccd_acquisitionabort)
     - [ccd\_getAcquisitionBusy](#ccd_getacquisitionbusy)
     - [ccd\_getAcquisitionData](#ccd_getacquisitiondata)
     - [ccd\_setCenterWavelength](#ccd_setcenterwavelength)
@@ -1845,6 +1847,20 @@ Returns the CCD device configuration.
             ],
             "hardwareAvgAvailable": false,
             "lineScan": false,
+            "parallelSpeeds": [
+                {
+                    "info": "9.6 µSec",
+                    "token": 1
+                },
+                {
+                    "info": "4.9 µSec",
+                    "token": 2
+                },
+                {
+                    "info": "19 µSec",
+                    "token": 0
+                }
+            ],
             "productId": "13",
             "serialNumber": "Camera SN:  5128",
             "signals": [
@@ -2349,6 +2365,134 @@ Sets the CCD speed token. A list of supported speed tokens can be found in the C
 <p></p>
 
 
+### <a id="ccd_getparallelspeed"></a>ccd_getParallelSpeed
+
+Gets the current parallel speed token and token description. Parallel speed tokens and their descriptions are contained in the CCD configuration information. See [ccd_getConfig](#ccd_getconfig) command. <br> **For example:** <br>
+```json
+"parallelSpeeds": [
+                {
+                    "info": "9.6 µSec",
+                    "token": 1
+                },
+                {
+                    "info": "4.9 µSec",
+                    "token": 2
+                },
+                {
+                    "info": "19 µSec",
+                    "token": 0
+                }
+],
+```
+_Note:_ The Parallel Speed value may also be referred to as the Vertical Shift Rate. These terms are interchangeable.
+
+
+**Command Parameters:**
+>| parameter  | description   |
+>|---|---|
+>| index | Integer. Used to identify which CCD to target. See [ccd_list](#ccd_list) command|
+
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| info | String. Description of the current parallel speed token. |
+>| token | Integer. Current parallel speed token. |
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "ccd_getParallelSpeed",
+    "parameters": {
+        "index": 0
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "ccd_getParallelSpeed",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "info": "19 µSec",
+        "token": 0
+    }
+}
+```
+
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="ccd_setparallelspeed"></a>ccd_setParallelSpeed
+
+Sets the CCD parallel speed token. A list of supported parallel speed tokens can be found in the CCD configuration. See [ccd_getConfig](#ccd_getconfig) command. <br> **For example:** <br>
+```json
+"parallelSpeeds": [
+                {
+                    "info": "9.6 µSec",
+                    "token": 1
+                },
+                {
+                    "info": "4.9 µSec",
+                    "token": 2
+                },
+                {
+                    "info": "19 µSec",
+                    "token": 0
+                }
+],
+```
+_Note:_ The Parallel Speed value may also be referred to as the Vertical Shift Rate. These terms are interchangeable.
+
+
+**Command Parameters:**
+>| parameter  | description   |
+>|---|---|
+>| index | Integer. Used to identify which CCD to target. See [ccd_list](#ccd_list) command|
+>| token | Integer. Parallel speed token from CCD config. |
+
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| _none_ | |
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "ccd_setParallelSpeed",
+    "parameters": {
+        "index": 0,
+        "token": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "ccd_setParallelSpeed",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
 ### <a id="ccd_getfitparams"></a>ccd_getFitParams
 
 Gets the FIT parameters contained in the CCD configuration.
@@ -2747,6 +2891,8 @@ Gets the X axis pixel conversion type to be used when retrieving the acquisition
 ### <a id="ccd_setxaxisconversiontype"></a>ccd_setXAxisConversionType
 
 Sets the X-axis pixel conversion type to be used when retrieving the acquisition data with the [ccd_getAcquisitionData](#ccd_getacquisitiondata) command.
+
+_Note:_ To use the parameters contained in the icl_settings.ini file, the [ccd_setCenterWavelength](#ccd_setcenterwavelength) command must be called first.
 
 **Command Parameters:**
 >| parameter  | description   |
@@ -3371,62 +3517,7 @@ The supported signal options are retrieved using the [ccd_getConfig](#ccd_getcon
 <p></p>
 
 
-### <a id="ccd_getacquisitionready"></a>ccd_getAcquisitionReady
-
-This command is used to get the Acquisition Ready state. The Acquisition Ready state indicates whether the CCD has a sufficient number of parameters specified and has been properly setup for acquiring data. This command may return false under the following conditions: 
-- Invalid acquisition format (see [ccd_setAcqFormat](#ccd_setacqformat)) 
-- Invalid x/y origin 
-- Invalid x/y size 
-- Invalid x/y bin 
-- Too many ROIs defined 
-- System busy
-
-<br>
-
-_Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setroi) and [ccd_setXAxisConversionType](#ccd_setxaxisconversiontype). If there are no acquisition parameters specified at the time of acquisition it may result in no data being generated.
-
-**Command Parameters:**
->| parameter  | description   |
->|---|---|
->| index | Integer. Used to identify which CCD to target. See [ccd_list](#ccd_list) command|
-
-
-**Return Results:**
->| results | description |
->|---|---|
->| ready | Boolean. Acquisition Ready state. <br> false = Not Ready <br> true = Ready
-
-**Example command:**
-
-```json
-{
-    "id": 1234,
-    "command": "ccd_getAcquisitionReady",
-    "parameters":{
-        "index": 0
-    }
-}
-```
-
-**Example response:**
-
-```json
-{
-    "command": "ccd_getAcquisitionReady",
-    "errors": [],
-    "id": 1234,
-    "results": {
-        "ready": true
-    }
-}
-```
-
-
-<div style="page-break-before:always">&nbsp;</div>
-<p></p>
-
-
-### <a id="ccd_setacquisitionstart"></a>ccd_setAcquisitionStart
+### <a id="ccd_acquisitionstart"></a>ccd_acquisitionStart
 
 Starts an acquisition that has been set up according to the previously defined acquisition parameters.
 
@@ -3448,7 +3539,7 @@ _Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setro
 ```json
 {
     "id": 1234,
-    "command": "ccd_setAcquisitionStart",
+    "command": "ccd_acquisitionStart",
     "parameters":{
         "index": 0,
         "openShutter": true
@@ -3460,7 +3551,49 @@ _Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setro
 
 ```json
 {
-    "command": "ccd_setAcquisitionStart",
+    "command": "ccd_acquisitionStart",
+    "errors": [],
+    "id": 1234,
+    "results":{}
+}
+```
+
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="ccd_acquisitionabort"></a>ccd_acquisitionAbort
+
+Stops the current acquisition.
+
+**Command Parameters:**
+>| parameter  | description   |
+>|---|---|
+>| index | Integer. Used to identify which CCD to target. See [ccd_list](#ccd_list) command|
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "ccd_acquisitionAbort",
+    "parameters":{
+        "index": 0
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "ccd_acquisitionAbort",
     "errors": [],
     "id": 1234,
     "results":{}
@@ -3599,9 +3732,9 @@ The acquisition description string consists of the following information:
 
 ### <a id="ccd_setcenterwavelength"></a>ccd_setCenterWavelength
 
-Sets the center wavelength value to be used in the grating equation.
+This command sets the center wavelength value and other parameters to be used in the pixel to wavelength conversion.
 
-_Note:_ This command should be called before [ccd_getAcquisitionReady](#ccd_getacquisitionready) and [ccd_setAcquisitionStart](#ccd_setacquisitionstart).
+_Note:_ This command should be called before [ccd_setXAxisConversionType](#ccd_setxaxisconversiontype) and [ccd_setAcquisitionStart](#ccd_setacquisitionstart).
 
 **Command Parameters:**
 >| parameter  | description   |

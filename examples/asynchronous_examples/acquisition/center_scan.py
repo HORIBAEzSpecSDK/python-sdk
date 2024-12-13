@@ -1,9 +1,11 @@
 # Dependencies: matplotlib package
 import asyncio
+import csv
 
 import matplotlib.pyplot as plt
 from loguru import logger
 
+from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.devices.device_manager import DeviceManager
@@ -27,56 +29,54 @@ async def main():
     await wait_for_ccd(ccd)
 
     try:
-        # mono initialization
-        await mono.home()
+        # mono configuration
+        await mono.initialize()
         await wait_for_mono(mono)
         await mono.set_turret_grating(Monochromator.Grating.THIRD)
         await wait_for_mono(mono)
 
-        target_wavelength = 585.25
+        target_wavelength = 0
         await mono.move_to_target_wavelength(target_wavelength)
         await wait_for_mono(mono)
-        await mono.set_turret_grating(mono.Grating.SECOND)
+        await mono.set_slit_position(mono.Slit.A, 0)
+        await mono.set_mirror_position(mono.Mirror.ENTRANCE, mono.MirrorPosition.AXIAL)
         await wait_for_mono(mono)
+        mono_wavelength = await mono.get_current_wavelength()
+        logger.info(f'Mono wavelength {mono_wavelength}')
 
         # ccd configuration
+
+        ccd_config = await ccd.get_configuration()
+        chip_x = int(ccd_config['chipWidth'])
+        chip_y = int(ccd_config['chipHeight'])
         await ccd.set_acquisition_count(1)
-        await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
-        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
-        await ccd.set_exposure_time(500)
+        await ccd.set_center_wavelength(mono.id(), mono_wavelength)
+        await ccd.set_exposure_time(1000)
+        await ccd.set_gain(0)  # High Light
         await ccd.set_speed(2)  # 1 MHz Ultra
-        # await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
-        # await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
-        await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
-        await ccd.set_center_wavelength(mono.id(), target_wavelength)
+        await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
+        await ccd.set_region_of_interest(
+            1, 0, 0, chip_x, chip_y, 1, chip_y
+        )  # Set default ROI, if you want a custom ROI, pass the parameters
+        await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
 
         xy_data = [[0], [0]]
 
         if await ccd.get_acquisition_ready():
-            await ccd.set_acquisition_start(open_shutter=True)
+            await ccd.acquisition_start(open_shutter=True)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
             await wait_for_ccd(ccd)
 
             raw_data = await ccd.get_acquisition_data()
-
-            xy_data = (eval(str(raw_data)))['acquisition'][0]['roi'][0]['xyData']
-
-            # with open('dataoutput.txt', 'w') as d:
-            # for key in xy_data:
-            # d.write(str(key))
-            # d.write('\n')
-            # d.write('\n')
-            # d.write(str(value))
-            # d.write('\n')
-            # d.write(str(type(value)))
-            # d.write('\n')
-
-            # pb
-            # below doesn't work (KeyError on raw_data[0]), need to parse out data further...
-            # xy_data = raw_data[0]['roi'][0]['xyData']
-
+            xy_data = raw_data[0]['roi'][0]['xyData']
             # for AcquisitionFormat.IMAGE:
             # xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData'][0]]
+            with open('outputcsv.csv', 'w', newline='') as csvfile:
+                w = csv.writer(csvfile)
+                fields = ['wavelength', 'intensity']
+                w.writerow(fields)
+                w.writerows(raw_data)
         else:
             raise Exception('CCD not ready for acquisition')
     finally:
@@ -91,11 +91,6 @@ async def main():
 
 
 async def plot_values(target_wavelength, xy_data):
-    # with open('output.txt', 'w') as f:
-    # f.write(str(xy_data))
-    # f.write('\n')
-    # f.write(str(type(xy_data)))
-    # f.close()
     x_values = [data[0] for data in xy_data]
     y_values = [data[1] for data in xy_data]
     # for AcquisitionFormat.IMAGE:

@@ -2,6 +2,7 @@
 # Important note: the fake_icl_exe will return the contents of the
 # horiba_sdk/devices/fake_responses/ccd.json
 # Look at /test/conftest.py for the definition of fake_icl_exe
+import unittest
 
 from horiba_sdk.core.clean_count_mode import CleanCountMode
 from horiba_sdk.core.timer_resolution import TimerResolution
@@ -21,7 +22,7 @@ def test_ccd_temperature(fake_sync_icl_exe, fake_sync_device_manager):  # noqa: 
     # act
     with fake_sync_device_manager.charge_coupled_devices[0] as ccd:
         # assert
-        temperature = ccd.get_temperature()
+        temperature = ccd.get_chip_temperature()
         assert temperature < 0.0
 
 
@@ -182,3 +183,21 @@ def test_ccd_acquisition_busy(fake_sync_icl_exe, fake_sync_device_manager):  # n
 
         # assert
         assert not acquisition_busy
+
+
+def test_ccd_raman_convert(fake_sync_icl_exe, fake_sync_device_manager):  # noqa: ARG001
+    # arrange
+    rounding = '%.5f'
+    excitation_wavelength = 520
+    wave_lengths = [520, 530, 550, 800, 1000]
+    expected_raman_shift = [0.0, 362.8447024673442, 1048.9510489510503, 6730.7692307692305, 9230.76923076923]
+    rounded_expected_raman_shift = [rounding % value for value in expected_raman_shift]
+    test_case_object = unittest.TestCase()
+
+    # act
+    with fake_sync_device_manager.charge_coupled_devices[0] as ccd:
+        raman_shift = ccd.raman_convert(wave_lengths, excitation_wavelength)
+        raman_shift_rounded = [rounding % value for value in raman_shift]
+
+        # assert
+        test_case_object.assertEqual(raman_shift_rounded, rounded_expected_raman_shift)

@@ -28,7 +28,7 @@ def test_ccd_functionality(sync_device_manager_instance):  # noqa: ARG001
         ccd.set_exposure_time(new_exposure_time)
         assert ccd.get_exposure_time() == new_exposure_time
 
-        temperature = ccd.get_temperature()
+        temperature = ccd.get_chip_temperature()
         assert temperature < 0
 
         _ignored_speed = ccd.get_speed_token()
@@ -37,7 +37,7 @@ def test_ccd_functionality(sync_device_manager_instance):  # noqa: ARG001
         ccd.set_region_of_interest()
 
         if ccd.get_acquisition_ready():
-            ccd.set_acquisition_start(open_shutter=True)
+            ccd.acquisition_start(open_shutter=True)
             time.sleep(1)  # Wait a short period for the acquisition to start
 
             acquisition_busy = True
@@ -102,6 +102,26 @@ def test_ccd_speed(sync_device_manager_instance):  # noqa: ARG001
         assert speed_after == speed_token_after
 
 
+# Commented out this test because the ccd at Zuehlke doesn't have any parallel speed tokens in the configs
+# @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
+# def test_ccd_parallel_speed(sync_device_manager_instance):  # noqa: ARG001
+#     # arrange
+#     with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
+#         parallel_speed_token_before = 0
+#         parallel_speed_token_after = 1
+#
+#         # act
+#         ccd.set_parallel_speed(parallel_speed_token_before)
+#         parallel_speed_before = ccd.get_parallel_speed()
+#
+#         ccd.set_parallel_speed(parallel_speed_token_after)
+#         parallel_speed_after = ccd.get_parallel_speed()
+#
+#         # assert
+#         assert parallel_speed_before == parallel_speed_token_before
+#         assert parallel_speed_after == parallel_speed_token_after
+
+
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 def test_ccd_resolution(sync_device_manager_instance):  # noqa: ARG001
     # arrange
@@ -120,7 +140,7 @@ def test_ccd_temperature(sync_device_manager_instance):  # noqa: ARG001
     # arrange
     with sync_device_manager_instance.charge_coupled_devices[0] as ccd:
         # act
-        temperature = ccd.get_temperature()
+        temperature = ccd.get_chip_temperature()
 
         # assert
         assert temperature < 0
@@ -193,7 +213,7 @@ def test_ccd_roi(sync_device_manager_instance):  # noqa: ARG001
         # act
         ccd.set_region_of_interest(0, 0, 0, 1000, 200, 1, 200)
         if ccd.get_acquisition_ready():
-            ccd.set_acquisition_start(open_shutter=True)
+            ccd.acquisition_start(open_shutter=True)
             time.sleep(1)  # Wait a short period for the acquisition to start
 
             acquisition_busy = True
@@ -354,11 +374,11 @@ def test_ccd_acquisition_abort(sync_device_manager_instance):  # noqa: ARG001
         ccd.set_region_of_interest()
 
         if ccd.get_acquisition_ready():
-            ccd.set_acquisition_start(open_shutter=True)
+            ccd.acquisition_start(open_shutter=True)
             time.sleep(0.2)  # Wait a short period for the acquisition to start
 
             acquisition_busy_before_abort = ccd.get_acquisition_busy()
-            ccd.set_acquisition_abort()
+            ccd.acquisition_abort()
             time.sleep(1)
             acquisition_busy_after_abort = ccd.get_acquisition_busy()
 

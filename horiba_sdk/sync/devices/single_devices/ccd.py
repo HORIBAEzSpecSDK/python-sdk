@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Any, List, Optional, final
+from typing import Any, Optional, final
 
 from loguru import logger
 from overrides import override
@@ -19,9 +19,8 @@ from horiba_sdk.sync.devices.single_devices.abstract_device import AbstractDevic
 class ChargeCoupledDevice(AbstractDevice):
     """Charge Coupled Device
 
-    This class should not be instanced by the end user. Instead, the
-    :class:`horiba_sdk.sync.devices.device_manager.DeviceManager` should be used to access the detected CCDs on the
-    system.
+    This class should not be instanced by the end user. Instead, the :class:`horiba_sdk.devices.DeviceManager`
+    should be used to access the detected CCDs on the system.
     """
 
     def __init__(self, device_id: int, communicator: AbstractCommunicator, error_db: AbstractErrorDB) -> None:
@@ -143,6 +142,27 @@ class ChargeCoupledDevice(AbstractDevice):
         """
         super()._execute_command('ccd_setSpeed', {'index': self._id, 'token': speed_token})
 
+    def get_parallel_speed(self) -> int:
+        """Gets the current parallel speed token
+
+        Returns:
+            int: current parallel speed token
+
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        response: Response = super()._execute_command('ccd_getParallelSpeed', {'index': self._id})
+        parallel_speed_token: int = int(response.results['token'])
+        return parallel_speed_token
+
+    def set_parallel_speed(self, parallel_speed_token: int) -> None:
+        """Sets the desired parallel speed token
+
+        Raises:
+            Exception: When an error occurred on the device side
+        """
+        super()._execute_command('ccd_setParallelSpeed', {'index': self._id, 'token': parallel_speed_token})
+
     def get_fit_parameters(self) -> list[int]:
         """Returns the fit parameters of the CCD
 
@@ -200,8 +220,8 @@ class ChargeCoupledDevice(AbstractDevice):
         """Sets the acquisition format and the number of ROIs (Regions of Interest) or areas.
 
         After using this command to set the number of ROIs and format, the set_region_of_interest function
-        should be used to define each ROI.
-        .. note:: The Crop and Fast Kinetics acquisition formats are not supported by every CCD.
+        should be used to define each ROI. Note: The Crop and Fast Kinetics acquisition formats are not
+        supported by every CCD.
 
         Args:
             number_of_rois (int): Number of regions of interest
@@ -255,7 +275,10 @@ class ChargeCoupledDevice(AbstractDevice):
 
     def set_x_axis_conversion_type(self, conversion_type: XAxisConversionType) -> None:
         """Sets the X-axis pixel conversion type to be used when retrieving the acquisition data with the
-        :func:`ChargeCoupledDevice.get_acquisition_data` command.
+        ccd_getAcquisitionData command.
+        0 = None (default)
+        1 = CCD FIT parameters contained in the CCD firmware
+        2 = Mono Wavelength parameters contained in the icl_settings.ini file
 
         Args:
             conversion_type (XAxisConversionType): Conversion type Integer. The X-axis pixel conversion type to be used.
@@ -265,9 +288,9 @@ class ChargeCoupledDevice(AbstractDevice):
 
     def get_x_axis_conversion_type(self) -> XAxisConversionType:
         """Gets the conversion type of the x axis.
-
-        Returns:
-            XAxisConversionType: The conversion type of the x axis.
+        0 = None (default)
+        1 = CCD FIT parameters contained in the CCD firmware
+        2 = Mono Wavelength parameters contained in the icl_settings.ini file
         """
         response: Response = super()._execute_command('ccd_getXAxisConversionType', {'index': self._id})
         return XAxisConversionType(response.results['type'])
@@ -304,7 +327,6 @@ class ChargeCoupledDevice(AbstractDevice):
 
     def set_clean_count(self, count: int, mode: CleanCountMode) -> None:
         """Sets the clean count mode of the CCD and the according mode
-
         Args:
             count (int): The number of acquisitions to be performed.
             mode (CleanCountMode): The mode of the clean count
@@ -323,7 +345,7 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = super()._execute_command('ccd_getDataSize', {'index': self._id})
         return int(response.results['size'])
 
-    def get_temperature(self) -> float:
+    def get_chip_temperature(self) -> float:
         """Chip temperature of the CCD.
 
         Returns:
@@ -354,7 +376,7 @@ class ChargeCoupledDevice(AbstractDevice):
         """Returns the exposure time in ms
 
         Returns:
-            int: Exposure time in ms
+            pint.Quantity: Exposure time in ms
         Raises:
             Exception: When an error occurred on the device side
         """
@@ -363,15 +385,12 @@ class ChargeCoupledDevice(AbstractDevice):
         return exposure
 
     def set_exposure_time(self, exposure_time: int) -> None:
-        """Sets the exposure time in timer resolution units (us or ms)
+        """Sets the exposure time in timer resolution units (1us or 1000us)
 
         Examples:
-
-        - If exposure_time is set to 50, and the timer resolution value,
-          :class:`horiba_sdk.core.timer_resolution.TimerResolution`, is `MILLISECONDS`, the CCD exposure time
+        - If exposure_time is set to 50, and the timer resolution value is 1000, the CCD exposure time
           (integration time) = 50 milliseconds.
-        - If exposure_time is set to 50, and the timer resolution value,
-          :class:`horiba_sdk.core.timer_resolution.TimerResolution`, is `MICROSECONDS`, the CCD exposure time
+        - If exposure_time is set to 50, and the timer resolution value is 1, the CCD exposure time
           (integration time) = 50 microseconds.
 
         Args:
@@ -393,13 +412,13 @@ class ChargeCoupledDevice(AbstractDevice):
 
         Returns:
             Tuple[bool, int, int, int]:
-                - enabled: Specifies if the signal is enabled (e.g. False = Disabled),
-                - address: used to specify where the trigger is located. (e.g. 0 = Trigger Input).
-                  Note: Value of -1 indicates that the input trigger is disabled,
-                - event: used to specify when the trigger event should occur. (e.g. 0 = Once - Start All)
-                  Note: Value of -1 indicates that the input trigger is disabled,
-                - signal type: used to specify how the signal will cause the input trigger. (e.g. 0 = TTL Falling Edge)
-                  Note: Value of -1 indicates that the input trigger is disabled,
+                enabled: Specifies if the signal is enabled (e.g. False = Disabled),
+                address: used to specify where the trigger is located. (e.g. 0 = Trigger Input).
+                         Note: Value of -1 indicates that the input trigger is disabled,
+                event: used to specify when the trigger event should occur. (e.g. 0 = Once - Start All)
+                       Note: Value of -1 indicates that the input trigger is disabled,
+                signal type: used to specify how the signal will cause the input trigger. (e.g. 0 = TTL Falling Edge)
+                       Note: Value of -1 indicates that the input trigger is disabled,
 
         Raises:
             Exception: When an error occurred on the device side
@@ -471,13 +490,13 @@ class ChargeCoupledDevice(AbstractDevice):
 
         Returns:
             Tuple[bool, int, int, int]:
-                - enabled: Specifies if the signal is enabled (e.g. False = Disabled),
-                - address: Used to specify where the signal is located (e.g. 0 = Signal Output),
-                  Note: Value of -1 indicates that the signal output is disabled,
-                - event: Used to specify when the signal event should occur. (e.g. 3 = Shutter Open)
-                  Note: Value of -1 indicates that the signal output is disabled,
-                - signal type: how the signal will cause the event. (e.g. 0 = TTL Active High)
-                  Note: Value of -1 indicates that the signal output is disabled,
+                enabled: Specifies if the signal is enabled (e.g. False = Disabled),
+                address: Used to specify where the signal is located (e.g. 0 = Signal Output),
+                         Note: Value of -1 indicates that the signal output is disabled,
+                event: Used to specify when the signal event should occur. (e.g. 3 = Shutter Open)
+                       Note: Value of -1 indicates that the signal output is disabled,
+                signal type: how the signal will cause the event. (e.g. 0 = TTL Active High)
+                       Note: Value of -1 indicates that the signal output is disabled,
 
         Raises:
             Exception: When an error occurred on the device side
@@ -547,34 +566,32 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = super()._execute_command('ccd_getAcquisitionReady', {'index': self._id})
         return bool(response.results['ready'])
 
-    def set_acquisition_start(self, open_shutter: bool) -> None:
+    def acquisition_start(self, open_shutter: bool) -> None:
         """Starts an acquisition that has been set up according to the previously defined acquisition parameters.
 
-        .. note:: To specify the acquisition parameters please see :func:`ChargeCoupledDevice.set_region_of_interest`,
-        :func:`ChargeCoupledDevice.set_x_axis_conversion_type`. If there are no acquisition parameters set at the time
-        of acquisition it may result in no data being generated.
+        Note: To specify the acquisiton parameters please see set_region_of_interest, set_x_axis_conversion_type.
+        If there are no acquisition parameters set at the time of acquisition it may result in no data being generated.
 
         Args:
             open_shutter (bool): Whether the shutter of the camera should be open during the acquisition.
         Raises:
             Exception: When an error occurred on the device side
         """
-        super()._execute_command('ccd_setAcquisitionStart', {'index': self._id, 'openShutter': open_shutter})
+        super()._execute_command('ccd_acquisitionStart', {'index': self._id, 'openShutter': open_shutter})
 
     def get_acquisition_busy(self) -> bool:
         """Returns true if the CCD is busy with the acquisition"""
         response: Response = super()._execute_command('ccd_getAcquisitionBusy', {'index': self._id})
         return bool(response.results['isBusy'])
 
-    def set_acquisition_abort(self, reset_port: bool = True) -> None:
+    def acquisition_abort(self) -> None:
         """Stops the acquisition of the CCD"""
-        super()._execute_command('ccd_setAcquisitionAbort', {'index': self._id, 'resetPort': reset_port})
+        super()._execute_command('ccd_acquisitionStart', {'index': self._id})
 
     def get_acquisition_data(self) -> dict[Any, Any]:
         """Retrieves data from the last acquisition.
 
         The acquisition description string consists of the following information:
-
         - acqIndex: Acquisition number
         - roiIndex: Region of Interest number
         - xOrigin: ROI’s X Origin
@@ -584,19 +601,18 @@ class ChargeCoupledDevice(AbstractDevice):
         - xBinning: ROI’s X Bin
         - yBinning: ROI’s Y Bin
         - Timestamp: This is a timestamp that relates to the time when the all the programmed acquisitions have
-          completed. The data from all programmed acquisitions are retrieve from the CCD after all
-          acquisitions have completed, therefore the same timestamp is used for all acquisitions.
+                     completed. The data from all programmed acquisitions are retrieve from the CCD after all
+                     acquisitions have completed, therefore the same timestamp is used for all acquisitions.
         """
         response: Response = super()._execute_command('ccd_getAcquisitionData', {'index': self._id})
         return response.results['acquisition']
 
-    def set_center_wavelength(self, monochromator_index: int, center_wavelength: float) -> None:
+    def set_center_wavelength(self, center_wavelength: float) -> None:
         """Sets the center wavelength value to be used in the grating equation.
 
         Used when X axis conversion is XAxisConversionType.FROM_ICL_SETTINGS_INI
 
         Args:
-            monochromator_index (int): Index of the monochromator that is connected to the setup
             center_wavelength (float): Center wavelength
 
         Raises:
@@ -604,19 +620,18 @@ class ChargeCoupledDevice(AbstractDevice):
         """
         super()._execute_command(
             'ccd_setCenterWavelength',
-            {'index': self._id, 'monoIndex': monochromator_index, 'wavelength': center_wavelength},
+            {'index': self._id, 'wavelength': center_wavelength},
         )
 
     def range_mode_center_wavelengths(
         self, monochromator_index: int, start_wavelength: float, end_wavelength: float, pixel_overlap: int
-    ) -> List[float]:
+    ) -> list[float]:
         """Finds the center wavelength positions based on the input range and pixel overlap.
 
         The following commands are prerequisites and should be called prior to using this command:
-
-        - :func:`ChargeCoupledDevice.set_x_axis_conversion_type`,
-        - :func:`ChargeCoupledDevice.set_acquisition_format`,
-        - :func:`ChargeCoupledDevice.set_region_of_interest`
+        - :func:`ChargeCoupledDevice.set_x`,
+        - :func:`ChargeCoupledDevice.ccd_setAcqFormat`,
+        - :func:`ChargeCoupledDevice.ccd_setRoi`
 
         Args:
             monochromator_index (int): Index of the monochromator that is connected to the setup
@@ -640,3 +655,20 @@ class ChargeCoupledDevice(AbstractDevice):
             },
         )
         return response.results['centerWavelengths']
+
+    @staticmethod
+    def raman_convert(spectrum: list[float], excitation_wavelength: float) -> list[float]:
+        """Calculates the raman shift for every wavelength in the list relative to the excitation wavelength.
+
+        Args:
+            spectrum (list[float]): Wavelengths
+            excitation_wavelength: Excitation wavelength
+
+        Returns:
+            list[float]: Wavelengths converted to raman shifts
+        """
+        raman_values = []
+        for wave_length in spectrum:
+            raman_shift = ((1 / excitation_wavelength) - (1 / wave_length)) * (10**7)
+            raman_values.append(raman_shift)
+        return raman_values
