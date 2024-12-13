@@ -3,6 +3,7 @@ import asyncio
 import csv
 
 import matplotlib.pyplot as plt
+import numpy as np
 from loguru import logger
 
 from horiba_sdk.core.acquisition_format import AcquisitionFormat
@@ -35,7 +36,7 @@ async def main():
         await mono.set_turret_grating(Monochromator.Grating.THIRD)
         await wait_for_mono(mono)
 
-        target_wavelength = 0
+        target_wavelength = 2999
         await mono.move_to_target_wavelength(target_wavelength)
         await wait_for_mono(mono)
         await mono.set_slit_position(mono.Slit.A, 0)
@@ -54,14 +55,12 @@ async def main():
         await ccd.set_exposure_time(1000)
         await ccd.set_gain(0)  # High Light
         await ccd.set_speed(2)  # 1 MHz Ultra
-        await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
+        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
         await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
         await ccd.set_region_of_interest(
             1, 0, 0, chip_x, chip_y, 1, chip_y
         )  # Set default ROI, if you want a custom ROI, pass the parameters
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
-
-        xy_data = [[0], [0]]
 
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=True)
@@ -69,10 +68,11 @@ async def main():
             await wait_for_ccd(ccd)
 
             raw_data = await ccd.get_acquisition_data()
-            xy_data = raw_data[0]['roi'][0]['xyData']
+            x_data = raw_data[0]['roi'][0]['xData']
+            y_data = raw_data[0]['roi'][0]['yData']
             # for AcquisitionFormat.IMAGE:
             # xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData'][0]]
-            with open('outputcsv.csv', 'w', newline='') as csvfile:
+            with open('outputcsv.csv', 'w', newline = "") as csvfile:
                 w = csv.writer(csvfile)
                 fields = ['wavelength', 'intensity']
                 w.writerow(fields)
@@ -87,22 +87,22 @@ async def main():
 
     await device_manager.stop()
 
-    await plot_values(target_wavelength, xy_data)
+    await plot_values(target_wavelength, x_data, y_data)
 
 
-async def plot_values(target_wavelength, xy_data):
-    x_values = [data[0] for data in xy_data]
-    y_values = [data[1] for data in xy_data]
-    # for AcquisitionFormat.IMAGE:
-    # x_values = xy_data[0]
-    # y_values = xy_data[1]
+async def plot_values(target_wavelength, x_data, y_data):
     # Plotting the data
-    plt.plot(x_values, y_values, linestyle='-')
-    plt.title(f'Wavelength ({target_wavelength}[nm]) vs. Intensity')
-    plt.xlabel('Wavelength')
-    plt.ylabel('Intensity')
-    plt.grid(True)
-    plt.show()
+    if len(y_data) == 1:
+        plt.plot(x_data, y_data[0], linestyle='-')
+        plt.title(f'Wavelength ({target_wavelength}[nm]) vs. Intensity')
+        plt.xlabel('Wavelength')
+        plt.ylabel('Intensity')
+        plt.grid(True)
+        plt.show()
+    else:
+        arr = np.array(y_data)
+        plt.imshow(arr, interpolation='nearest', aspect='auto')
+        plt.show()
 
 
 async def wait_for_ccd(ccd):
