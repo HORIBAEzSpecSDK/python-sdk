@@ -36,7 +36,7 @@ async def main():
         await mono.set_turret_grating(Monochromator.Grating.THIRD)
         await wait_for_mono(mono)
 
-        target_wavelength = 2999
+        target_wavelength = 0
         await mono.move_to_target_wavelength(target_wavelength)
         await wait_for_mono(mono)
         await mono.set_slit_position(mono.Slit.A, 0)
