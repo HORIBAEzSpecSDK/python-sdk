@@ -584,9 +584,9 @@ class ChargeCoupledDevice(AbstractDevice):
         response: Response = super()._execute_command('ccd_getAcquisitionBusy', {'index': self._id})
         return bool(response.results['isBusy'])
 
-    def acquisition_abort(self, reset_port: bool = True) -> None:
+    def acquisition_abort(self) -> None:
         """Stops the acquisition of the CCD"""
-        super()._execute_command('ccd_acquisitionStart', {'index': self._id, 'resetPort': reset_port})
+        super()._execute_command('ccd_acquisitionStart', {'index': self._id})
 
     def get_acquisition_data(self) -> dict[Any, Any]:
         """Retrieves data from the last acquisition.
@@ -655,3 +655,20 @@ class ChargeCoupledDevice(AbstractDevice):
             },
         )
         return response.results['centerWavelengths']
+
+    @staticmethod
+    def raman_convert(spectrum: list[float], excitation_wavelength: float) -> list[float]:
+        """Calculates the raman shift for every wavelength in the list relative to the excitation wavelength.
+
+        Args:
+            spectrum (list[float]): Wavelengths
+            excitation_wavelength: Excitation wavelength
+
+        Returns:
+            list[float]: Wavelengths converted to raman shifts
+        """
+        raman_values = []
+        for wave_length in spectrum:
+            raman_shift = ((1 / excitation_wavelength) - (1 / wave_length)) * (10**7)
+            raman_values.append(raman_shift)
+        return raman_values

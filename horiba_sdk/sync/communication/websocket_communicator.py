@@ -169,7 +169,7 @@ class WebsocketCommunicator(AbstractCommunicator):
             raise CommunicationException(None, 'Binary message callback already registered')
 
         self.binary_message_callback = callback
-        logger.info('Binary message callback registered.')
+        logger.debug('Binary message callback registered.')
         self.running_binary_message_handling_thread = True
         self.binary_message_handling_thread = Thread(target=self._run_binary_message_callback)
         self.binary_message_handling_thread.start()

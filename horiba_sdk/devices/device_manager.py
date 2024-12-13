@@ -66,6 +66,7 @@ class DeviceManager(AbstractDeviceManager):
         icl_ip: str = '127.0.0.1',
         icl_port: str = '25010',
         enable_binary_messages: bool = True,
+        enable_logging: bool = False
     ):
         """
         Initializes the DeviceManager with the specified communicator class.
@@ -75,7 +76,15 @@ class DeviceManager(AbstractDeviceManager):
             icl_ip (str) = '127.0.0.1': websocket IP
             icl_port (str) = '25010': websocket port
             enable_binary_messages (bool) = True: If True, binary messages are enabled.
+            enable_logging (bool) = True: If True, logging with the loguru library is enabled.
         """
+        # By default, logging is disabled for a library, so if desired it can be enabled
+        root_name_space: str = __name__.split('.')[0]
+        if enable_logging:
+            logger.info(f"Initializing logger for namespace: {root_name_space}")
+            logger.enable(root_name_space)
+        else:
+            logger.disable(root_name_space)
         super().__init__()
         self._start_icl = start_icl
         self._icl_communicator: WebsocketCommunicator = WebsocketCommunicator('ws://' + icl_ip + ':' + str(icl_port))
@@ -129,6 +138,8 @@ class DeviceManager(AbstractDeviceManager):
             logger.info('icl not running, starting it...')
             # subprocess.Popen([r'C:\Program Files\HORIBA Scientific\SDK\icl.exe'])
             self._icl_process = await asyncio.create_subprocess_exec(r'C:\Program Files\HORIBA Scientific\SDK\icl.exe')
+            await asyncio.sleep(4)
+
         # except subprocess.CalledProcessError:
         #    logger.error('Failed to start ICL software.')
         # TODO: [saga] is this the best way handle exceptions?

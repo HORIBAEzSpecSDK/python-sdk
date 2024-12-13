@@ -55,19 +55,19 @@ Center Scan
 The center scan scans at/around a given wavelength and displays the scanned intensity.
 
 1. Create a file named :code:`center_scan.py` and copy-paste the content of
-   `examples/asynchronous_examples/center_scan.py <https://github.com/ThatsTheEnd/horiba-python-sdk/blob/main/examples/asynchronous_examples/center_scan.py>`_
+   `examples/asynchronous_examples/center_scan.py <https://github.com/HORIBAEzSpecSDK/python-sdk/blob/main/examples/asynchronous_examples/center_scan.py>`_
 
 2. Install the required library for plotting the graph:
 
    .. code:: bash
 
-     pip install matplotlib
+     pip install matplotlib numpy
 
    or install with `Poetry`
 
    .. code:: bash
 
-     poetry add matplotlib
+     poetry add matplotlib numpy
 
 3. Run the example with:
 

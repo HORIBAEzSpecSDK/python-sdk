@@ -51,7 +51,7 @@ async def main():
         await ccd.set_region_of_interest(1, 0, 0, chip_width, chip_height, 1, 1)
 
         if await ccd.get_acquisition_ready():
-            await ccd.set_acquisition_start(open_shutter=True)
+            await ccd.acquisition_start(open_shutter=True)
             await wait_for_ccd(ccd)
 
             raw_data = await ccd.get_acquisition_data()
