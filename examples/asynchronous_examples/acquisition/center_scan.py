@@ -76,7 +76,7 @@ async def main():
                 w = csv.writer(csvfile)
                 fields = ['wavelength', 'intensity']
                 w.writerow(fields)
-                w.writerows(raw_data)
+                w.writerows(zip(x_data, y_data[0]))
         else:
             raise Exception('CCD not ready for acquisition')
     finally:
