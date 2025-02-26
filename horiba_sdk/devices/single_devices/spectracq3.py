@@ -1,10 +1,13 @@
-from enum import Enum
-
-from horiba_sdk.communication import Response
+from loguru import logger
+from typing import Any, Optional, final
+from types import TracebackType
+from horiba_sdk.communication import Response, AbstractCommunicator
 
 from .abstract_device import AbstractDevice
+from ...icl_error import AbstractErrorDB
 
 
+@final
 class SpectrAcq3(AbstractDevice):
     """
     SpectrAcq3 device class.
@@ -14,15 +17,22 @@ class SpectrAcq3(AbstractDevice):
     with the device and handling any potential errors gracefully.
     """
 
-    class Status(Enum):
-        """
-        Enum representing the status of the SpectrAcq3 device.
+    def __init__(self, device_id: int, communicator: AbstractCommunicator, error_db: AbstractErrorDB) -> None:
+        super().__init__(device_id, communicator, error_db)
 
-        This enum is used to define the possible states of the device, which helps in managing the device's lifecycle
-        and ensuring that operations are performed only when the device is in a valid state.
-        """
-        CLOSED = 0
-        OPEN = 1
+    async def __aenter__(self) -> 'SpectrAcq3':
+        await self.open()
+        return self
+
+    async def __aexit__(
+        self, exc_type: type[BaseException], exc_value: BaseException, traceback: Optional[TracebackType]
+    ) -> None:
+        is_open = await self.is_open()
+        if not is_open:
+            logger.debug('SpectrAcq3 is already closed')
+            return
+
+        await self.close()
 
     async def open(self) -> None:
         """
@@ -42,6 +52,19 @@ class SpectrAcq3(AbstractDevice):
         """
         await self._execute_command('saq3_close', {'index': self._id})
 
+    async def is_open(self) -> bool:
+        """
+        Check if the connection to the SpectrAcq3 device is open.
+
+        This method checks the status of the device connection to determine if it is open or closed. It is useful for
+        verifying the device's state before performing any operations that require an active connection.
+
+        Returns:
+            bool: True if the connection is open, False otherwise.
+        """
+        response: Response = await self._execute_command('saq3_isOpen', {'index': self._id})
+        return response.results['open']
+
     async def get_serial_number(self) -> str:
         """
         Retrieve the serial number of the SpectrAcq3 device.
@@ -53,4 +76,4 @@ class SpectrAcq3(AbstractDevice):
             str: The serial number of the device.
         """
         response: Response = await self._execute_command('saq3_getSerialNumber', {'index': self._id})
-        return response.results['serialNumber'] 
+        return response.results['serialNumber']
