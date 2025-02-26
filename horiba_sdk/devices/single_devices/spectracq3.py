@@ -1,10 +1,12 @@
-from loguru import logger
-from typing import Any, Optional, final
 from types import TracebackType
-from horiba_sdk.communication import Response, AbstractCommunicator
+from typing import Optional, final
 
-from .abstract_device import AbstractDevice
+from loguru import logger
+
+from horiba_sdk.communication import AbstractCommunicator, Response
+
 from ...icl_error import AbstractErrorDB
+from .abstract_device import AbstractDevice
 
 
 @final
