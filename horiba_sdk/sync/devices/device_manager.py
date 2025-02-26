@@ -7,6 +7,7 @@ This Device Manager uses threads instead of asyncio
 import importlib.resources
 import platform
 import subprocess
+import time
 from pathlib import Path
 from subprocess import Popen
 from typing import Optional, final
@@ -97,6 +98,7 @@ class DeviceManager(AbstractDeviceManager):
             logger.info('icl not running, starting it...')
             try:
                 self._icl_process = subprocess.Popen([r'C:\Program Files\HORIBA Scientific\SDK\icl.exe'])
+                time.sleep(3)
             except subprocess.CalledProcessError as error:
                 logger.error('Failed to start ICL software.')
                 raise Exception('Failed to start ICL software') from error

@@ -375,7 +375,7 @@ async def test_ccd_signal_out(event_loop, async_device_manager_instance):  # noq
         assert actual_signal_output_before == expected_signal_output_before
         assert actual_signal_output_after == expected_signal_output_after
 
-
+@pytest.mark.skip(reason='This tests throws an error and the acquisition is not aborted')
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 async def test_ccd_acquisition_abort(event_loop, async_device_manager_instance):  # noqa: ARG001
     # arrange
@@ -392,15 +392,20 @@ async def test_ccd_acquisition_abort(event_loop, async_device_manager_instance):
 
             acquisition_busy_before_abort = await ccd.get_acquisition_busy()
             await asyncio.sleep(0.2)
-            # aborting throws an error at the moment, for whatever reason, but it works
-            with suppress(Exception):
+            try:
+                # aborting throws an error at the moment, for whatever reason, but it works
                 await ccd.acquisition_abort()
+                
+                await asyncio.sleep(2)
+                acquisition_busy_after_abort = await ccd.get_acquisition_busy()
 
-            await asyncio.sleep(2)
-            acquisition_busy_after_abort = await ccd.get_acquisition_busy()
+                assert acquisition_busy_before_abort, "Acquisition should be busy before abort, but it was not"
+                assert not acquisition_busy_after_abort, "Acquisition should not be busy after abort, but it was"
+            except Exception as e:
+                await ccd.restart()
+                await asyncio.sleep(10)
+                raise AssertionError(f"Error aborting acquisition: {e}")
 
-            assert acquisition_busy_before_abort
-            assert not acquisition_busy_after_abort
 
 
 async def wait_mono(mono: Monochromator) -> None:

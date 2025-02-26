@@ -1,7 +1,7 @@
 # pylint: skip-file
 
 import os
-
+import time
 import psutil
 import pytest
 
@@ -17,7 +17,7 @@ def is_icl_running() -> bool:
     os.environ.get('HAS_HARDWARE') != 'true' or (os.environ.get('TEST_ICL_IP') and os.environ.get('TEST_ICL_PORT')),
     reason='Hardware tests only run locally',
 )
-def test_device_manager_start_icl(event_loop):  # noqa: ARG001
+def test_device_manager_start_icl():  # noqa: ARG001
     device_manager = DeviceManager(start_icl=True)
     device_manager.start()
     assert is_icl_running(), 'ICL software is not running on the system'

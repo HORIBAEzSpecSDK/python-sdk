@@ -4,7 +4,7 @@ from loguru import logger
 from numpy import argsort, array, concatenate, dtype, interp, ndarray
 from overrides import override
 
-from examples.asynchronous_examples.stitching.spectra_stitch import SpectraStitch
+from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
 
 
 class LinearSpectraStitch(SpectraStitch):
@@ -52,28 +52,52 @@ class LinearSpectraStitch(SpectraStitch):
         fx1, fy1 = spectrum1
         fx2, fy2 = spectrum2
 
+        # Convert to numpy arrays
         x1: ndarray[Any, dtype[Any]] = array(fx1)
         x2: ndarray[Any, dtype[Any]] = array(fx2)
         y1: ndarray[Any, dtype[Any]] = array(fy1)
         y2: ndarray[Any, dtype[Any]] = array(fy2)
 
-        overlap_start = max(x1[0], x2[0])
-        overlap_end = min(x1[-1], x2[-1])
+        # Sort spectra while maintaining x-y correspondence
+        sort1 = argsort(x1)
+        sort2 = argsort(x2)
+        
+        # Create sorted views of both arrays
+        x1_sorted = x1[sort1]
+        y1_sorted = y1[sort1]
+        x2_sorted = x2[sort2]
+        y2_sorted = y2[sort2]
+
+        # Calculate true overlap region
+        x1_min, x1_max = x1_sorted[0], x1_sorted[-1]
+        x2_min, x2_max = x2_sorted[0], x2_sorted[-1]
+        
+        overlap_start = max(x1_min, x2_min)
+        overlap_end = min(x1_max, x2_max)
+
+        logger.debug(f"Spectrum 1 range: {x1_min} to {x1_max}")
+        logger.debug(f"Spectrum 2 range: {x2_min} to {x2_max}")
+        logger.debug(f"Overlap region: {overlap_start} to {overlap_end}")
 
         if overlap_start >= overlap_end:
-            logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
+            logger.error(f'No overlap between spectra: [{x1_min}, {x1_max}] and [{x2_min}, {x2_max}]')
             raise Exception('No overlapping region between spectra')
 
-        mask1 = (x1 >= overlap_start) & (x1 <= overlap_end)
-        mask2 = (x2 >= overlap_start) & (x2 <= overlap_end)
+        # Create masks for overlapping regions using sorted arrays
+        mask1 = (x1_sorted >= overlap_start) & (x1_sorted <= overlap_end)
+        mask2 = (x2_sorted >= overlap_start) & (x2_sorted <= overlap_end)
 
-        y2_interp = interp(x1[mask1], x2[mask2], y2[mask2])
+        # Interpolate second spectrum onto first spectrum's x points in overlap region
+        y2_interp = interp(x1_sorted[mask1], x2_sorted[mask2], y2_sorted[mask2])
 
-        y_combined_overlap = (y1[mask1] + y2_interp) / 2
+        # Average the overlapping region
+        y_combined_overlap = (y1_sorted[mask1] + y2_interp) / 2
 
-        x_combined = concatenate((x1[~mask1], x1[mask1], x2[~mask2]))
-        y_combined = concatenate((y1[~mask1], y_combined_overlap, y2[~mask2]))
+        # Combine non-overlapping and overlapping regions
+        x_combined = concatenate((x1_sorted[~mask1], x1_sorted[mask1], x2_sorted[~mask2]))
+        y_combined = concatenate((y1_sorted[~mask1], y_combined_overlap, y2_sorted[~mask2]))
 
+        # Ensure final result is sorted
         sort_indices = argsort(x_combined)
         x_combined = x_combined[sort_indices]
         y_combined = y_combined[sort_indices]

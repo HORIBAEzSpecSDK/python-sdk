@@ -4,7 +4,7 @@ import asyncio
 import matplotlib.pyplot as plt
 from loguru import logger
 
-from examples.asynchronous_examples.linear_spectra_stitch import LinearSpectraStitch
+from horiba_sdk.core.stitching import LinearSpectraStitch
 from horiba_sdk.core.acquisition_format import AcquisitionFormat
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
@@ -28,14 +28,15 @@ async def main():
     await ccd.open()
     await wait_for_ccd(ccd)
 
-    start_wavelength = 200
-    end_wavelength = 1000
+    start_wavelength = 400
+    end_wavelength = 600
     spectrum = [[0], [0]]
 
     try:
         # mono configuration
-        await mono.initialize()
-        await wait_for_mono(mono)
+        if not await mono.is_initialized():
+            await mono.initialize()
+            await wait_for_mono(mono)
         await mono.set_turret_grating(Monochromator.Grating.SECOND)
         await wait_for_mono(mono)
         await mono.set_mirror_position(Monochromator.Mirror.ENTRANCE, Monochromator.MirrorPosition.AXIAL)
@@ -44,7 +45,7 @@ async def main():
         await wait_for_mono(mono)
 
         # ccd configuration
-        await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
+        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
         await ccd.set_exposure_time(100)
         await ccd.set_gain(0)  # High Light
         await ccd.set_speed(2)  # 1 MHz Ultra
@@ -83,11 +84,13 @@ async def main():
             await ccd.set_center_wavelength(mono.id(), mono_wavelength)
 
             xy_data = await capture(ccd)
+            # Add debug logging to check the data structure
+            logger.debug(f"Capture data structure: {xy_data}")
             captures.append(xy_data)
 
-        stitch = LinearSpectraStitch(
-            captures
-        )  # You can implement your own stitching by subclassing the SpectraStitch interface
+        # Add debug logging before stitching
+        logger.debug(f"All captures before stitching: {captures}")
+        stitch = LinearSpectraStitch(captures)
         spectrum = stitch.stitched_spectra()
         # pb
         filtered_spectrum = await filter_values(start_wavelength, end_wavelength, spectrum[0], spectrum[1])
@@ -116,11 +119,11 @@ async def capture(ccd):
         await wait_for_ccd(ccd)
 
         raw_data = await ccd.get_acquisition_data()
-        print(raw_data)
+        logger.info(raw_data)
         # for AcquisitionFormat.SPECTRA:
         # xy_data = raw_data[0]['roi'][0]['xyData']
         # for AcquisitionFormat.IMAGE:
-        xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData'][0]]
+        xy_data = [raw_data[0]['roi'][0]['xData'], raw_data[0]['roi'][0]['yData']]
         logger.info(xy_data)
 
     else:

@@ -4,7 +4,7 @@ from loguru import logger
 from numpy import array, concatenate, dtype, ndarray
 from overrides import override
 
-from examples.asynchronous_examples.stitching.spectra_stitch import SpectraStitch
+from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
 
 
 class SimpleCutSpectraStitch(SpectraStitch):
