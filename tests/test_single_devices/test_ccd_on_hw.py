@@ -1,7 +1,6 @@
 import asyncio
 import os
 import random
-from contextlib import suppress
 
 import pytest
 from loguru import logger
@@ -395,7 +394,7 @@ async def test_ccd_acquisition_abort(event_loop, async_device_manager_instance):
             try:
                 # aborting throws an error at the moment, for whatever reason, but it works
                 await ccd.acquisition_abort()
-                
+
                 await asyncio.sleep(2)
                 acquisition_busy_after_abort = await ccd.get_acquisition_busy()
 
@@ -404,8 +403,7 @@ async def test_ccd_acquisition_abort(event_loop, async_device_manager_instance):
             except Exception as e:
                 await ccd.restart()
                 await asyncio.sleep(10)
-                raise AssertionError(f"Error aborting acquisition: {e}")
-
+                raise AssertionError(f"Error aborting acquisition: {e}") from e
 
 
 async def wait_mono(mono: Monochromator) -> None:

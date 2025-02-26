@@ -22,8 +22,8 @@ class SpectrAcq3Discovery(AbstractDeviceDiscovery):
         Discovers the connected SpectrAcq3 devices and saves them internally.
 
         Raises:
-            Exception: When no SpectrAcq3 devices are discovered and that `error_on_no_device` is set. Or when there is an
-            issue parsing the SpectrAcq3 devices list
+            Exception: When no SpectrAcq3 devices are discovered and that `error_on_no_device` is set.
+            Or when there is an issue parsing the SpectrAcq3 devices list
         """
         if not self._communicator.opened():
             await self._communicator.open()
@@ -52,4 +52,4 @@ class SpectrAcq3Discovery(AbstractDeviceDiscovery):
         return detected_devices
 
     def spectracq3_devices(self) -> list[SpectrAcq3]:
-        return self._spectracq3_devices 
+        return self._spectracq3_devices

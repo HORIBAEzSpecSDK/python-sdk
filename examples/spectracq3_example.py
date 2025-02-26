@@ -1,5 +1,6 @@
 import asyncio
 import sys
+
 from loguru import logger
 
 from horiba_sdk.devices.device_manager import DeviceManager

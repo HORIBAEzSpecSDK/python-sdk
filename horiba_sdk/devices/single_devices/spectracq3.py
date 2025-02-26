@@ -1,8 +1,6 @@
 from enum import Enum
-from typing import Any
 
-from horiba_sdk.communication import AbstractCommunicator, Response
-from horiba_sdk.icl_error import AbstractErrorDB
+from horiba_sdk.communication import Response
 
 from .abstract_device import AbstractDevice
 

@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock
 
-from horiba_sdk.devices.single_devices.spectracq3 import SpectrAcq3
+import pytest
+
 from horiba_sdk.communication import AbstractCommunicator, Response
+from horiba_sdk.devices.single_devices.spectracq3 import SpectrAcq3
 from horiba_sdk.icl_error import AbstractErrorDB
 
 

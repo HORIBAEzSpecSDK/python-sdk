@@ -51,8 +51,8 @@ from horiba_sdk.devices import AbstractDeviceManager
 from horiba_sdk.devices.ccd_discovery import ChargeCoupledDevicesDiscovery
 from horiba_sdk.devices.monochromator_discovery import MonochromatorsDiscovery
 from horiba_sdk.devices.single_devices import ChargeCoupledDevice, Monochromator, SpectrAcq3
-from horiba_sdk.icl_error import AbstractError, AbstractErrorDB, ICLErrorDB
 from horiba_sdk.devices.spectracq3_discovery import SpectrAcq3Discovery
+from horiba_sdk.icl_error import AbstractError, AbstractErrorDB, ICLErrorDB
 
 
 @final
