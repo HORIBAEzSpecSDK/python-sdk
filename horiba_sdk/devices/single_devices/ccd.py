@@ -618,7 +618,8 @@ class ChargeCoupledDevice(AbstractDevice):
                      acquisitions have completed, therefore the same timestamp is used for all acquisitions.
         """
         response: Response = await super()._execute_command('ccd_getAcquisitionData', {'index': self._id})
-        return response.results['acquisition']
+        results: dict[Any, Any] = response.results
+        return results
 
     async def set_center_wavelength(self, mono_index: float, center_wavelength: float) -> None:
         """Sets the center wavelength value to be used in the grating equation.
@@ -668,7 +669,8 @@ class ChargeCoupledDevice(AbstractDevice):
                 'overlap': pixel_overlap,
             },
         )
-        return response.results['centerWavelengths']
+        center_wavelengths: list[float] = response.results['centerWavelengths']
+        return center_wavelengths
 
     @staticmethod
     async def raman_convert(spectrum: list[float], excitation_wavelength: float) -> list[float]:

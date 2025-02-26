@@ -8,7 +8,7 @@ from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.devices.device_manager import DeviceManager
 
 
-async def subtract_dark_count(shutter_open_data: list, shutter_closed_data: list) -> list:
+async def subtract_dark_count(shutter_open_data: list[float], shutter_closed_data: list[float]) -> list[float]:
     values_noise_free = []
     zipped_data = zip(shutter_open_data, shutter_closed_data)
     for data in zipped_data:
