@@ -3,6 +3,8 @@ import os
 
 import pytest
 
+from horiba_sdk.core.trigger_input_polarity import TriggerInputPolarity
+
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 async def test_spectracq3_open_close(async_device_manager_instance):
@@ -162,6 +164,17 @@ async def test_spectracq3_acq_pause_continue(async_device_manager_instance):
         # Assuming some mechanism to check if acquisition paused
         await spectracq3.acq_continue()
         # Assuming some mechanism to check if acquisition continued
+
+
+@pytest.mark.parametrize('expected_polarity', [TriggerInputPolarity.ACTIVE_LOW, TriggerInputPolarity.ACTIVE_HIGH])
+async def test_set_and_get_trigger_in_polarity(async_device_manager_instance, expected_polarity):
+    async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
+        # arrange
+        await spectracq3.set_trigger_in_polarity(expected_polarity)
+        # act
+        result = await spectracq3.get_trigger_in_polarity()
+        # assert
+        assert result == expected_polarity.value
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
