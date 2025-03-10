@@ -92,7 +92,6 @@ async def test_spectracq3_get_max_hv_voltage_allowed(async_device_manager_instan
         assert max_hv_voltage == expected_max_hv_voltage_allowed
 
 
-@pytest.mark.xfail(reason='The integration in ICL version 177 does not come back with all parameters ')
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 async def test_spectracq3_define_get_acq_set(async_device_manager_instance):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
@@ -104,7 +103,6 @@ async def test_spectracq3_define_get_acq_set(async_device_manager_instance):
         assert acq_set['externalParam'] == 0
 
 
-@pytest.mark.xfail(reason='The integration in ICL version 177 does deliver the wrong is_data_available bool value ')
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 async def test_spectracq3_data_available_after_acquisition(async_device_manager_instance):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
@@ -118,6 +116,7 @@ async def test_spectracq3_data_available_after_acquisition(async_device_manager_
             assert await spectracq3.is_data_available()
         finally:
             _ = await spectracq3.get_available_data()
+            await spectracq3.acq_stop()
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
@@ -132,12 +131,16 @@ async def test_spectracq3_acquisition(async_device_manager_instance):
         result = await spectracq3.get_available_data()
         assert isinstance(result, list)
 
+        # stop acquisition to prevent problems with other unit tests
+        await spectracq3.acq_stop()
 
+
+@pytest.mark.xfail(reason='The integration in ICL version 179 does deliver the wrong is_data_available bool value ')
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 async def test_spectracq3_acq_start_stop(async_device_manager_instance):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         # arrange
-        await spectracq3.set_acq_set(10, 1, 10, 0)
+        await spectracq3.set_acq_set(2, 0, 2, 0)
         # act
         await spectracq3.acq_start(1)
         await asyncio.sleep(0.1)
@@ -152,7 +155,7 @@ async def test_spectracq3_acq_start_stop(async_device_manager_instance):
 async def test_spectracq3_acq_pause_continue(async_device_manager_instance):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         # arrange
-        await spectracq3.set_acq_set(10, 1, 10, 0)
+        await spectracq3.set_acq_set(2, 0, 2, 0)
         # act
         await spectracq3.acq_start(1)
         await asyncio.sleep(0.1)
@@ -160,6 +163,9 @@ async def test_spectracq3_acq_pause_continue(async_device_manager_instance):
         # Assuming some mechanism to check if acquisition paused
         await spectracq3.acq_continue()
         # Assuming some mechanism to check if acquisition continued
+
+        # stop acquisition to prevent problems with other unit tests
+        await spectracq3.acq_stop()
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
