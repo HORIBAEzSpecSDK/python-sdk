@@ -109,7 +109,6 @@ async def test_spectracq3_define_get_acq_set(async_device_manager_instance):
 async def test_spectracq3_data_available_after_acquisition(async_device_manager_instance):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         # arrange
-        await spectracq3.set_integration_time(2)
         await spectracq3.set_acq_set(2, 0, 2, 0)
         # act
         await spectracq3.acq_start(1)
@@ -125,7 +124,6 @@ async def test_spectracq3_data_available_after_acquisition(async_device_manager_
 async def test_spectracq3_acquisition(async_device_manager_instance):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         # arrange
-        await spectracq3.set_integration_time(2)
         await spectracq3.set_acq_set(2, 0, 2, 0)
         # act
         await spectracq3.acq_start(1)
@@ -140,7 +138,6 @@ async def test_spectracq3_acq_start_stop(async_device_manager_instance):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         # arrange
         await spectracq3.set_acq_set(10, 1, 10, 0)
-        await spectracq3.set_integration_time(10)
         # act
         await spectracq3.acq_start(1)
         await asyncio.sleep(0.1)
@@ -156,7 +153,6 @@ async def test_spectracq3_acq_pause_continue(async_device_manager_instance):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         # arrange
         await spectracq3.set_acq_set(10, 1, 10, 0)
-        await spectracq3.set_integration_time(10)
         # act
         await spectracq3.acq_start(1)
         await asyncio.sleep(0.1)
