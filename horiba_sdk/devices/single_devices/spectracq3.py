@@ -1,11 +1,12 @@
 from types import TracebackType
-from typing import List, Optional, final
+from typing import Optional, final
 
 from loguru import logger
 from pydantic import BaseModel
 
 from horiba_sdk.communication import AbstractCommunicator, Response
 
+from ...core.trigger_input_polarity import TriggerInputPolarity
 from ...icl_error import AbstractErrorDB
 from .abstract_device import AbstractDevice
 
@@ -33,7 +34,7 @@ class DataPoint(BaseModel):
 
 
 class AvailableDataResults(BaseModel):
-    data: List[DataPoint]
+    data: list[DataPoint]
 
 
 class AcqSetResults(BaseResults):
@@ -239,13 +240,16 @@ class SpectrAcq3(AbstractDevice):
             integration_time (int): Integration time in seconds.
             external_param (int): User defined value.
         """
-        await self._execute_command('saq3_defineAcqSet', {
-            'index': self._id,
-            'scanCount': scan_count,
-            'timeStep': time_step,
-            'integrationTime': integration_time,
-            'externalParam': external_param
-        })
+        await self._execute_command(
+            'saq3_defineAcqSet',
+            {
+                'index': self._id,
+                'scanCount': scan_count,
+                'timeStep': time_step,
+                'integrationTime': integration_time,
+                'externalParam': external_param,
+            },
+        )
 
     async def get_acq_set(self) -> dict:
         """
@@ -332,6 +336,26 @@ class SpectrAcq3(AbstractDevice):
         This method sends a command to the device to force a software trigger.
         """
         await self._execute_command('saq3_forceTrigger', {'index': self._id})
+
+    async def set_trigger_in_polarity(self, polarity: TriggerInputPolarity) -> None:
+        """
+        Set the input trigger polarity.
+
+        Args:
+            polarity (TriggerInputPolarity): Input trigger polarity (ACTIVE_LOW or ACTIVE_HIGH).
+        """
+        await self._execute_command('saq3_setTriggerInPolarity', {'index': self._id, 'polarity': polarity.value})
+
+    async def get_trigger_in_polarity(self) -> int:
+        """
+        Get the input trigger polarity.
+
+        Returns:
+            int: Input trigger polarity (0: Active Low, 1: Active High).
+        """
+        response: Response = await self._execute_command('saq3_getTriggerInPolarity', {'index': self._id})
+        polarity: int = response.results['polarity']
+        return polarity
 
     async def set_in_trigger_mode(self, mode: int) -> None:
         """
