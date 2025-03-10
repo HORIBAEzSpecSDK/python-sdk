@@ -33,7 +33,7 @@ async def test_spectracq3_get_firmware_version(async_device_manager_instance):
     # act
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         firmware_version = await spectracq3.get_firmware_version()
-    # assert
+        # assert
         assert firmware_version == expected_firmware_version
 
 
@@ -44,7 +44,7 @@ async def test_spectracq3_get_fpga_version(async_device_manager_instance):
     # act
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         fpga_version = await spectracq3.get_fpga_version()
-    # assert
+        # assert
         assert fpga_version == expected_fpga_version
 
 
@@ -55,17 +55,8 @@ async def test_spectracq3_get_board_revision(async_device_manager_instance):
     # act
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         board_revision = await spectracq3.get_board_revision()
-    # assert
+        # assert
         assert board_revision == expected_board_revision
-
-
-@pytest.mark.xfail(reason='The integration in ICL version 177 does come back with type integrationTIme) ')
-@pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_spectracq3_set_get_integration_time(async_device_manager_instance):
-    async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
-        await spectracq3.set_integration_time(10)
-        integration_time = await spectracq3.get_integration_time()
-        assert integration_time == 10
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
@@ -78,7 +69,7 @@ async def test_spectracq3_set_get_hv_bias_voltage(async_device_manager_instance)
         # assert
         assert hv_bias_voltage == 49
 
-        #act
+        # act
         await spectracq3.set_hv_bias_voltage(51)
         hv_bias_voltage = await spectracq3.get_hv_bias_voltage()
         # assert
@@ -95,7 +86,7 @@ async def test_spectracq3_get_max_hv_voltage_allowed(async_device_manager_instan
     # act
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         max_hv_voltage = await spectracq3.get_max_hv_voltage_allowed()
-    # assert
+        # assert
         assert max_hv_voltage == expected_max_hv_voltage_allowed
 
 

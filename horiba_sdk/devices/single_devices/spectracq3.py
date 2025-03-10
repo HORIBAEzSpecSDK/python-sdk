@@ -167,30 +167,6 @@ class SpectrAcq3(AbstractDevice):
         board_revision: str = response.results['boardRevision']
         return board_revision
 
-    async def set_integration_time(self, integration_time: int) -> None:
-        """
-        Set the integration time for the acquisition.
-
-        This method sends a command to the device to set the integration time.
-
-        Args:
-            integration_time (int): The integration time in seconds.
-        """
-        await self._execute_command('saq3_setIntegrationTime', {'index': self._id, 'integrationTime': integration_time})
-
-    async def get_integration_time(self) -> int:
-        """
-        Get the integration time that was previously set.
-
-        This method sends a command to the device to fetch the integration time.
-
-        Returns:
-            int: The integration time in seconds.
-        """
-        response: Response = await self._execute_command('saq3_getIntegrationTime', {'index': self._id})
-        integration_time: int = response.results['integrationTime']
-        return integration_time
-
     async def set_hv_bias_voltage(self, bias_voltage: int) -> None:
         """
         Set the high bias voltage.
