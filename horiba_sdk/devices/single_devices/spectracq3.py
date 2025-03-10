@@ -204,7 +204,7 @@ class SpectrAcq3(AbstractDevice):
         max_hv_voltage: int = response.results['biasVoltage']
         return max_hv_voltage
 
-    async def define_acq_set(self, scan_count: int, time_step: int, integration_time: int, external_param: int) -> None:
+    async def set_acq_set(self, scan_count: int, time_step: int, integration_time: int, external_param: int) -> None:
         """
         Define the acquisition set parameters.
 
@@ -217,7 +217,7 @@ class SpectrAcq3(AbstractDevice):
             external_param (int): User defined value.
         """
         await self._execute_command(
-            'saq3_defineAcqSet',
+            'saq3_setAcqSet',
             {
                 'index': self._id,
                 'scanCount': scan_count,
