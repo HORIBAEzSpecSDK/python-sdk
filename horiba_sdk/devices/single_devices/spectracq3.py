@@ -370,7 +370,7 @@ class SpectrAcq3(AbstractDevice):
         last_error: str = response.results['error']
         return last_error
 
-    async def get_error_log(self) -> str:
+    async def get_error_log(self) -> list[str]:
         """
         Get the error log.
 
@@ -380,7 +380,7 @@ class SpectrAcq3(AbstractDevice):
             str: The error log.
         """
         response: Response = await self._execute_command('saq3_getErrorLog', {'index': self._id})
-        error_log: str = response.results['errors']
+        error_log: list[str] = response.results['errors']
         return error_log
 
     async def clear_error_log(self) -> None:

@@ -213,7 +213,7 @@ async def test_spectracq3_get_last_error(async_device_manager_instance):
 async def test_spectracq3_get_error_log(async_device_manager_instance):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
         error_log = await spectracq3.get_error_log()
-        assert isinstance(error_log, str)
+        assert isinstance(error_log, list)
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
