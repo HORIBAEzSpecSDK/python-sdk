@@ -93,14 +93,17 @@ async def test_spectracq3_get_max_hv_voltage_allowed(async_device_manager_instan
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_spectracq3_define_get_acq_set(async_device_manager_instance):
+@pytest.mark.parametrize('scan_count, time_step, integration_time, external_param', [(10, 1, 10, 0), (2, 0, 2, 0)])
+async def test_spectracq3_define_get_acq_set(
+    async_device_manager_instance, scan_count, time_step, integration_time, external_param
+):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
-        await spectracq3.set_acq_set(10, 1, 10, 0)
+        await spectracq3.set_acq_set(scan_count, time_step, integration_time, external_param)
         acq_set = await spectracq3.get_acq_set()
-        assert acq_set['scanCount'] == 10
-        assert acq_set['timeStep'] == 1
-        assert acq_set['integrationTime'] == 10
-        assert acq_set['externalParam'] == 0
+        assert acq_set['scanCount'] == scan_count
+        assert acq_set['timeStep'] == time_step
+        assert acq_set['integrationTime'] == integration_time
+        assert acq_set['externalParam'] == external_param
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
