@@ -166,6 +166,7 @@ async def test_spectracq3_acq_pause_continue(async_device_manager_instance):
         # Assuming some mechanism to check if acquisition continued
 
 
+@pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 @pytest.mark.parametrize('expected_polarity', [TriggerInputPolarity.ACTIVE_LOW, TriggerInputPolarity.ACTIVE_HIGH])
 async def test_set_and_get_trigger_in_polarity(async_device_manager_instance, expected_polarity):
     async with async_device_manager_instance.spectracq3_devices[0] as spectracq3:
