@@ -353,7 +353,7 @@ class SpectrAcq3(AbstractDevice):
         Returns:
             dict: The trigger mode settings.
         """
-        response: Response = await self._execute_command('saq3_getTriggerMode', {'index': self._id})
+        response: Response = await self._execute_command('saq3_getInTriggerMode', {'index': self._id})
         trigger_mode: dict = response.results
         return trigger_mode
 
