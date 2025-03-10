@@ -1,8 +1,8 @@
 # ICL API Programmers Manual
 
 revision: **0.2**  
-date: **01/06/2025**  
-ICL version: **2.0.0.177**
+date: **01/06/2025**
+ICL version: **2.0.0.179**
 
 This document describes the remote command and data API provided by the ICL.
 
@@ -88,7 +88,7 @@ This document describes the remote command and data API provided by the ICL.
   - [SpectrAcq3 - Single Channel Detector Interface](#spectracq3---single-channel-detector-interface)
     - [saq3\_discover](#saq3_discover)
     - [saq3\_list](#saq3_list)
-    - [saq3\_listCount](#saq3_listcount)
+    - [saq3\_listCount](#saq3_listCount)
     - [saq3\_open](#saq3_open)
     - [saq3\_close](#saq3_close)
     - [saq3\_isOpen](#saq3_isOpen)
@@ -97,12 +97,11 @@ This document describes the remote command and data API provided by the ICL.
     - [saq3\_getFPGAVersion](#saq3_getFPGAVersion)
     - [saq3\_getBoardRevision](#saq3_getBoardRevision)
     - [saq3\_getSerialNumber](#saq3_getSerialNumber)
-    - [saq3\_setIntegrationTime](#saq3_setIntegrationTime)
-    - [saq3\_getIntegrationTime](#saq3_getIntegrationTime)
     - [saq3\_setHVBiasVoltage](#saq3_setHVBiasVoltage)
     - [saq3\_getHVBiasVoltage](#saq3_getHVBiasVoltage)
     - [saq3\_getMaxHVVoltageAllowed](#saq3_getMaxHVVoltageAllowed)
-    - [saq3\_defineAcqSet](#saq3_defineAcqSet)
+    - [saq3\_setAcqSet](#saq3_setAcqSet)
+    - [saq3\_getAcqSet](#saq3_getAcqSet)
     - [saq3\_acqStart](#saq3_acqStart)
     - [saq3\_acqStop](#saq3_acqStop)
     - [saq3\_acqPause](#saq3_acqPause)
@@ -4126,7 +4125,7 @@ Checks whether the instrument is busy (e.g., performing initialization or data a
 **Return Results:**
 >| results | description |
 >|---|---|
->| is_busy | Indicates whether the SpectrAcq3 is busy (true) or idle (false).
+>| isBusy | Indicates whether the SpectrAcq3 is busy (true) or idle (false).
 
 **Example command:**
 
@@ -4148,7 +4147,7 @@ Checks whether the instrument is busy (e.g., performing initialization or data a
     "errors": [],
     "id": 1234,
     "results": {
-        "is_busy" : true
+        "isBusy" : true
     }
 }
 ```
@@ -4325,91 +4324,6 @@ Get the Serial number of the device for the given index.
 }
 ```
 
-<div style="page-break-before:always">&nbsp;</div>
-<p></p>
-
-### <a id="saq3_setIntegrationTime"></a>saq3_setIntegrationTime
-
-Sets the integration time for the acquisition. If not set, the default value will be used.
-This parameter can be set using [saq3_defineAcqSet](#saq3_defineAcqSet).
-
-**Command parameters:**
->| parameter  | description   |
->|---|---|
->|index| The index of the SpectrAcq3 device for which you want to set the integration time |
->|integrationTime| Set the integration time in the <b>seconds</b>
-
-**Return Results:**
->| results | description |
->|---|---|
->| _none_|
-
-**Example command:**
-
-```json
-{
-    "id": 1234,
-    "command": "saq3_setIntegrationTime",
-    "parameters": {
-        "index": 1,
-        "integrationTime": 10
-    }
-}
-```
-
-**Example response:**
-
-```json
-{
-    "command": "saq3_setIntegrationTime",
-    "errors": [],
-    "id": 1234,
-    "results": {}
-}
-```
-
-<div style="page-break-before:always">&nbsp;</div>
-<p></p>
-
-
-### <a id="saq3_getIntegrationTime"></a>saq3_getIntegrationTime
-
-Gets the integration time that was previously set. If no integration time has been explicitly set, the default value is returned.
-
-**Command parameters:**
->| parameter  | description   |
->|---|---|
->|index| The index of the SpectrAcq3 device for which you want to get the integration time |
-
-**Return Results:**
->| results | description |
->|---|---|
->| integrationTime| Gets the integration time that was previously set. The integration time is returned in <b>seconds</b>. <br>If no integration time has been explicitly set, the default value is returned.
-
-**Example command:**
-
-```json
-{
-    "id": 1234,
-    "command": "saq3_getIntegrationTime",
-    "parameters": {
-        "index": 1
-    }
-}
-```
-
-**Example response:**
-
-```json
-{
-    "command": "saq3_getIntegrationTime",
-    "errors": [],
-    "id": 1234,
-    "results": {
-        "integrationTime": 10
-    }
-}
-```
 
 <div style="page-break-before:always">&nbsp;</div>
 <p></p>
@@ -4543,7 +4457,7 @@ Gets the maximum bias high voltage allowed in <b>Volts</b>
 <div style="page-break-before:always">&nbsp;</div>
 <p></p>
 
-### <a id="saq3_defineAcqSet"></a>saq3_defineAcqSet
+### <a id="saq3_setAcqSet"></a>saq3_setAcqSet
 
 Defines and sends the parameters for the acquisition set to perform the acquisition. 
 <br>If the acquisition set is not defined, a single-point scan with default settings is performed.
@@ -4552,8 +4466,9 @@ Defines and sends the parameters for the acquisition set to perform the acquisit
 Parameters to define for the acquisition
 - Scan Count : Number of acquisitions to perform
 - Time Steps : Time interval in seconds between acquisitions
-- Integration time: Time in Seconds 
+- Integration time: Integration time in seconds 
 - External user defined parameter
+
 Returns an error if an acquisition is already in progress.
 
 **Command parameters:**
@@ -4562,7 +4477,7 @@ Returns an error if an acquisition is already in progress.
 >|index| The index of the SpectrAcq3 device for which you want to define the acquisition set |
 >|scanCount|Must be at least 1. The total accumulated value for all Acquisition sets cannot exceed 131,070.(Max. Total Point Count)|
 >|timeStep|Interval between successive scans for time based scan.<br>If 0/not defined, the scans take place as fast as possible (limited by integration time and monochromator move if applicable)|
->|integrationTime||
+>|integrationTime|Integration time in seconds |
 >|externalParam|User defined value|
 
 **Return Results:**
@@ -4575,7 +4490,7 @@ Returns an error if an acquisition is already in progress.
 ```json
 {
     "id": 1234,
-    "command": "saq3_defineAcqSet",
+    "command": "saq3_setAcqSet",
     "parameters": {
         "index": 1,
         "scanCount": 10,
@@ -4590,7 +4505,7 @@ Returns an error if an acquisition is already in progress.
 
 ```json
 {
-    "command": "saq3_defineAcqSet",
+    "command": "saq3_setAcqSet",
     "errors": [],
     "id": 1234,
     "results": {}
@@ -4653,7 +4568,7 @@ Define acquisition sets before starting an acquisition. Ensure acquisition prepa
 <br>Starting an acquisition will return an error if:
 - An acquisition is already running, or
 - Acquisition preparation has not been completed.
-- In the event of errors in the defined parameters, the result will include an `error_count` field indicating the number of errors detected.<br>
+- In the event of errors in the defined parameters, the result will include an `errorCount` field indicating the number of errors detected.<br>
 use [saq3_getErrorLog](#saq3_getErrorLog) to get the detailed error. 
 
 **Command parameters:**
@@ -5009,6 +4924,96 @@ Software Trigger, treated the same as Hardware Trigger (IN).
 }
 ```
 
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_setTriggerInPolarity"></a>saq3_setTriggerInPolarity
+
+Defines the polarity of the input trigger.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+>|polarity| Input trigger polarity <br> 0 - Active Low (falling edge) <br> 1 - Active High (rising edge)|
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|none|
+
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_setTriggerInPolarity",
+    "parameters": {
+        "index": 1,
+        "polarity": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_setTriggerInPolarity",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_getTriggerInPolarity"></a>saq3_getTriggerInPolarity
+
+Returns the polarity of the input trigger.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|polarity| Input trigger polarity <br> 0 - Active Low (falling edge) <br> 1 - Active High (rising edge)|
+
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getTriggerInPolarity",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getTriggerInPolarity",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "polarity": 1
+    }
+}
+```
+
+
 <div style="page-break-before:always">&nbsp;</div>
 <p></p>
 
@@ -5054,9 +5059,9 @@ Tell the device how Hardware Trigger pin is used. Returns Error if Acquisition i
 <div style="page-break-before:always">&nbsp;</div>
 <p></p>
 
-### <a id="saq3_getTriggerMode"></a>saq3_getTriggerMode
+### <a id="saq3_getInTriggerMode"></a>saq3_getInTriggerMode
 
-Read the trigger mode.
+Returns the acquisition trigger mode defined in [saq3_acqStart](#saq3_acqstart), as well as, the hardware input trigger mode defined in [saq3_setInTriggerMode](#saq3_setintriggermode).
 
 **Command parameters:**
 >| parameter  | description   |
@@ -5066,10 +5071,8 @@ Read the trigger mode.
 **Return Results:**
 >| results | description |
 >|---|---|
->|scanStartMode|---|
->|inputTriggerMode|---|
->|outputTriggerMode|---|
->|ccdMode|---|
+>|scanStartMode|Mode of the acquisition trigger defined in [saq3_startAcq](#saq3_acqstart) <br> 1: First data started on Start command, all subsequent data acquired based on interval time <br> 2: First data started by Trigger after Start command, all subsequent data acquired based on interval time <br> 3: Each data acquisition waits for Trigger |
+>|inputTriggerMode|Mode of the hardware input trigger defined in [saq3_setInTriggerMode](#saq3_setintriggermode) <br> 0: TTL input <br> 1: Event marker input <br> 2: Hardware trigger input|
 
 
 **Example command:**
@@ -5077,7 +5080,7 @@ Read the trigger mode.
 ```json
 {
     "id": 1234,
-    "command": "saq3_getTriggerMode",
+    "command": "saq3_getInTriggerMode",
     "parameters": {
         "index": 1
     }
@@ -5088,14 +5091,12 @@ Read the trigger mode.
 
 ```json
 {
-    "command": "saq3_getTriggerMode",
+    "command": "saq3_getInTriggerMode",
     "errors": [],
     "id": 1234,
     "results": {
-        "scanStartMode" : 1,
         "inputTriggerMode": 1,
-        "outputTriggerMode": 0,
-        "ccdMode": 0
+        "scanStartMode" : 1
     }
 }
 ```
