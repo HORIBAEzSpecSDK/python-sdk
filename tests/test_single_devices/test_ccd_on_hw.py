@@ -424,6 +424,7 @@ async def test_ccd_range_mode_positions(event_loop, async_device_manager_instanc
         await mono.open()
         await wait_mono(mono)
 
+        await ccd.set_center_wavelength(mono.id(), 230.0)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
         await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
         await ccd.set_region_of_interest()
