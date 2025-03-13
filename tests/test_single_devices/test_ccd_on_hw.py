@@ -49,10 +49,11 @@ async def test_ccd_functionality(event_loop, async_device_manager_instance):  # 
 
             acquisition_data_size = await ccd.get_acquisition_data_size()
             acquisition_data = await ccd.get_acquisition_data()
+            await ccd.acquisition_abort()
 
             assert acquisition_data_size > 0
-            assert acquisition_data[0]['roi'][0]['xOrigin'] == 0
-            assert acquisition_data[0]['roi'][0]['yOrigin'] == 0
+            assert acquisition_data['acquisition'][0]['roi'][0]['xOrigin'] == 0
+            assert acquisition_data['acquisition'][0]['roi'][0]['yOrigin'] == 0
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
@@ -230,15 +231,16 @@ async def test_ccd_roi(event_loop, async_device_manager_instance):  # noqa: ARG0
 
             acquisition_data_size = await ccd.get_acquisition_data_size()
             acquisition_data = await ccd.get_acquisition_data()
+            await ccd.acquisition_abort()
 
             # assert
             assert acquisition_data_size == 1000
-            assert acquisition_data[0]['roi'][0]['xOrigin'] == 0
-            assert acquisition_data[0]['roi'][0]['yOrigin'] == 0
-            assert acquisition_data[0]['roi'][0]['xSize'] == 1000
-            assert acquisition_data[0]['roi'][0]['ySize'] == 200
-            assert acquisition_data[0]['roi'][0]['xBinning'] == 1
-            assert acquisition_data[0]['roi'][0]['yBinning'] == 200
+            assert acquisition_data['acquisition'][0]['roi'][0]['xOrigin'] == 0
+            assert acquisition_data['acquisition'][0]['roi'][0]['yOrigin'] == 0
+            assert acquisition_data['acquisition'][0]['roi'][0]['xSize'] == 1000
+            assert acquisition_data['acquisition'][0]['roi'][0]['ySize'] == 200
+            assert acquisition_data['acquisition'][0]['roi'][0]['xBinning'] == 1
+            assert acquisition_data['acquisition'][0]['roi'][0]['yBinning'] == 200
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
@@ -377,7 +379,7 @@ async def test_ccd_signal_out(event_loop, async_device_manager_instance):  # noq
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 async def test_ccd_acquisition_abort(async_device_manager_instance):  # noqa: ARG001
     async with async_device_manager_instance.charge_coupled_devices[0] as ccd:
-        # act
+        await ccd.set_acquisition_count(1)
         await ccd.set_timer_resolution(TimerResolution.MICROSECONDS)
         ccd.set_exposure_time(10000)
 
@@ -394,6 +396,7 @@ async def test_ccd_acquisition_abort(async_device_manager_instance):  # noqa: AR
 
             assert acquisition_busy_before_abort
             assert not acquisition_busy_after_abort
+
 
 async def wait_mono(mono: Monochromator) -> None:
     await asyncio.sleep(0.2)
@@ -419,4 +422,5 @@ async def test_ccd_range_mode_positions(event_loop, async_device_manager_instanc
         await ccd.set_region_of_interest()
 
         center_wavelengths = await ccd.range_mode_center_wavelengths(mono.id(), start_wavelength, end_wavelength, 10)
+        await mono.close()
         assert center_wavelengths
