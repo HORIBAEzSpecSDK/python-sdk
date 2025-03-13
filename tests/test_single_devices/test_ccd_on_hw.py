@@ -386,7 +386,6 @@ async def test_ccd_acquisition_abort(async_device_manager_instance):  # noqa: AR
 
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=True)
-            await asyncio.sleep(0.2)  # Wait a short period for the acquisition to start
 
             acquisition_busy_before_abort = await ccd.get_acquisition_busy()
             await ccd.acquisition_abort()
