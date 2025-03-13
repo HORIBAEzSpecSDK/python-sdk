@@ -39,7 +39,7 @@ async def main():
 
         # ccd config
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
-        await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
+        await ccd.set_timer_resolution(TimerResolution.MICROSECONDS)
         await ccd.set_exposure_time(1)
         await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
         await ccd.set_gain(0)  # High Light
@@ -48,7 +48,7 @@ async def main():
         ccd_config = await ccd.get_configuration()
         chip_width = int(ccd_config['chipWidth'])
         chip_height = int(ccd_config['chipHeight'])
-        await ccd.set_region_of_interest(1, 0, 0, chip_width, chip_height, 1, 1)
+        await ccd.set_region_of_interest(1, 0, 0, chip_width - 1, chip_height - 1, 1, 1)
 
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=True)
@@ -60,9 +60,9 @@ async def main():
         # xy_data = raw_data[0]['roi'][0]['xyData']
 
         # for AcquisitionFormat.IMAGE
-        xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData']]
+            xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'][0], raw_data['acquisition'][0]['roi'][0]['yData']]
 
-        await plot_image(xy_data)
+            await plot_image(xy_data)
 
     finally:
         await ccd.close()
