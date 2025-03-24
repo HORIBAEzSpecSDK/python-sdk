@@ -1,7 +1,7 @@
 from horiba_sdk.communication import Command
 
 
-def test_command_to_json_with_string_paramter():
+def test_command_to_json_with_string_parameter():
     # arrange
     command: Command = Command('test_command', {'test': 'some_test'})
 
