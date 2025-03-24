@@ -63,7 +63,7 @@ class WebsocketCommunicator(AbstractCommunicator):
             raise CommunicationException(None, 'websocket already opened')
 
         try:
-            self.websocket = await websockets.connect(self.uri)
+            self.websocket = await websockets.connect(self.uri, max_size=None)  # type: ignore
             # self.flush_incoming_messages(self)  # Flush any incoming messages (if any
 
         except websockets.WebSocketException as e:

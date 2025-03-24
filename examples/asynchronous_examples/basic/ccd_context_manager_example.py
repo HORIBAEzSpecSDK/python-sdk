@@ -29,7 +29,7 @@ async def main():
         speed = await ccd.get_speed_token()
         logger.info(f'Speed token: {speed}')
 
-        await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
+        await ccd.set_region_of_interest(1,0,0, 16, 4, 1, 4)  # Set default ROI, if you want a custom ROI, pass the parameters
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=True)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start

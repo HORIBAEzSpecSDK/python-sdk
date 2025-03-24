@@ -38,6 +38,7 @@ async def main():
         # await wait_for_mono(mono)
 
         # ccd config
+        await ccd.set_acquisition_count(200)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
         await ccd.set_timer_resolution(TimerResolution.MICROSECONDS)
         await ccd.set_exposure_time(1)
@@ -48,7 +49,7 @@ async def main():
         ccd_config = await ccd.get_configuration()
         chip_width = int(ccd_config['chipWidth'])
         chip_height = int(ccd_config['chipHeight'])
-        await ccd.set_region_of_interest(1, 0, 0, chip_width - 1, chip_height - 1, 1, 1)
+        await ccd.set_region_of_interest(1, 0, 0, chip_width, chip_height, 1, 1)
 
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=True)
@@ -66,7 +67,7 @@ async def main():
 
     finally:
         await ccd.close()
-        logger.info('Waiting before closing Monochromator')
+        logger.info('Waiting before closing CCD')
 
     await device_manager.stop()
 
