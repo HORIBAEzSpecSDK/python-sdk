@@ -25,7 +25,6 @@ async def main():
     await spectracq3.open()
 
     wavelengths = [500, 501, 502]
-    all_data = []
 
     try:
         for wavelength in wavelengths:
@@ -41,7 +40,6 @@ async def main():
                 while await spectracq3.is_busy():
                     await asyncio.sleep(10)
                 data = await spectracq3.get_available_data()
-                all_data.append(data)
                 logger.info(f'Acquired data at {wavelength}nm: {data}')
             else:
                 logger.error('SpectrAcq3 not ready for acquisition')
