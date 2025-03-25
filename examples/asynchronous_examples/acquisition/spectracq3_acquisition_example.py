@@ -1,8 +1,8 @@
 import asyncio
-import json
 from loguru import logger
 from horiba_sdk.devices.device_manager import DeviceManager
-from examples.asynchronous_examples.other.save_data_to_disk import save_acquisition_data_to_csv  # Assuming the function is in save_data_to_disk.py
+from examples.asynchronous_examples.other.save_data_to_disk import save_spectracq3_data_to_csv
+
 
 async def main():
     device_manager = DeviceManager(start_icl=True)
@@ -36,24 +36,24 @@ async def main():
 
             if not await spectracq3.is_busy():
 
-                await spectracq3.set_acq_set(1,0,1,0)
+                await spectracq3.set_acq_set(1, 0, 1, 0)
                 await spectracq3.acq_start(1)
                 while await spectracq3.is_busy():
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(10)
                 data = await spectracq3.get_available_data()
                 all_data.append(data)
                 logger.info(f'Acquired data at {wavelength}nm: {data}')
             else:
                 logger.error('SpectrAcq3 not ready for acquisition')
 
-        # Save all data to CSV
-        json_data = json.dumps({"acquisition": all_data})
-        save_acquisition_data_to_csv(json_data, 'acquisition_data.csv')
+            file_name = 'acquisition_data_' + str(wavelength) + '.csv'
+            save_spectracq3_data_to_csv(data[0], file_name)
 
     finally:
         await mono.close()
         await spectracq3.close()
         await device_manager.stop()
+
 
 if __name__ == '__main__':
     asyncio.run(main())
