@@ -1,7 +1,9 @@
 import asyncio
+
 from loguru import logger
-from horiba_sdk.devices.device_manager import DeviceManager
+
 from examples.asynchronous_examples.other.save_data_to_disk import save_spectracq3_data_to_csv
+from horiba_sdk.devices.device_manager import DeviceManager
 
 
 async def main():
