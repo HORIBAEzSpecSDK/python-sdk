@@ -4,7 +4,7 @@ from loguru import logger
 from numpy import argsort, array, concatenate, dtype, interp, ndarray
 from overrides import override
 
-from examples.asynchronous_examples.spectra_stitch import SpectraStitch
+from examples.helpers.spectra_stitch import SpectraStitch
 
 
 class LinearSpectraStitch(SpectraStitch):
@@ -31,7 +31,7 @@ class LinearSpectraStitch(SpectraStitch):
         """Stitches this stitch with another stitch.
 
         Parameters
-            other_stitch : SpectraStitch The other stitch to stitch with
+            other_stitch : SpectraStitch The helpers stitch to stitch with
 
         Returns:
             SpectraStitch: The stitched spectra.

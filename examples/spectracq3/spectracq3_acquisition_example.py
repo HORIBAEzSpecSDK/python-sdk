@@ -2,7 +2,7 @@ import asyncio
 
 from loguru import logger
 
-from examples.asynchronous_examples.other.save_data_to_disk import save_spectracq3_data_to_csv
+from examples.helpers.save_data_to_disk import save_spectracq3_data_to_csv
 from horiba_sdk.devices.device_manager import DeviceManager
 
 
@@ -35,17 +35,11 @@ async def main():
                 await asyncio.sleep(0.1)
             logger.info(f'Monochromator set to {wavelength}nm')
 
-            if not await spectracq3.is_busy():
-
-                await spectracq3.set_acq_set(1, 0, 1, 0)
-                await spectracq3.acq_start(1)
-                while await spectracq3.is_busy():
-                    await asyncio.sleep(10)
-                data = await spectracq3.get_available_data()
-                logger.info(f'Acquired data at {wavelength}nm: {data}')
-            else:
-                logger.error('SpectrAcq3 not ready for acquisition')
-
+            await spectracq3.set_acq_set(1, 0, 1, 0)
+            await spectracq3.acq_start(1)
+            await asyncio.sleep(3)
+            data = await spectracq3.get_available_data()
+            logger.info(f'Acquired data at {wavelength}nm: {data}')
             file_name = 'acquisition_data_' + str(wavelength) + '.csv'
             save_spectracq3_data_to_csv(data[0], file_name)
 

@@ -28,9 +28,13 @@ async def main():
             # Open the device
             await spectracq3.open()
 
-            # Retrieve and log the serial number
-            serial_number = await spectracq3.get_serial_number()
-            logger.info(f'Discovered SpectrAcq3 with Serial Number: {serial_number}')
+            # Retrieve and log infos
+            logger.info(f'Discovered SpectrAcq3 with Serial Number: {await spectracq3.get_serial_number()}')
+            logger.info(f'Firmware Version: {await spectracq3.get_firmware_version()}')
+            logger.info(f'FPGA Version: {await spectracq3.get_fpga_version()}')
+            logger.info(f'Board Revision: {await spectracq3.get_board_revision()}')
+            logger.info(f'Max HV voltage allowed: {await spectracq3.get_max_hv_voltage_allowed()}')
+            logger.info(f'Error log: {await spectracq3.get_error_log()}')
 
             # Close the device
             await spectracq3.close()
@@ -43,4 +47,5 @@ async def main():
 if __name__ == "__main__":
     # configure the log level from the console to show severity level info and above
     logger.configure(handlers=[{"sink": sys.stdout, "level": "INFO"}])
-    asyncio.run(main()) 
+    asyncio.run(main())
+

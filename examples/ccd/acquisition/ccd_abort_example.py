@@ -41,7 +41,7 @@ async def main():
                 await ccd.acquisition_abort()
             data = await ccd.get_acquisition_data()
             logger.info(f'Data when aborted while waiting for a trigger: {data}')
-            
+
     except Exception as e:
         logger.error(f'Error: {e}')
 
@@ -53,9 +53,6 @@ async def main():
         await ccd.close()
         logger.info("Stopping device manager...")
         await device_manager.stop()
-        
-
-    
 
 
 if __name__ == '__main__':
