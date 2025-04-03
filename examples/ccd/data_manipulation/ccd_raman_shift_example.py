@@ -50,10 +50,10 @@ async def main():
             data_wavelength = await ccd.get_acquisition_data()
             logger.info(f'Data with wavelength: {data_wavelength}')
 
-            wavelengths = data_wavelength[0]['roi'][0]['xData'][0]
+            wavelengths = data_wavelength["acquisition"][0]['roi'][0]['xData']
             raman_shift = await ccd.raman_convert(wavelengths, excitation_wavelength)
             data_raman_shift = data_wavelength
-            data_raman_shift[0]['roi'][0]['xData'][0] = raman_shift
+            data_raman_shift["acquisition"][0]['roi'][0]['xData'][0] = raman_shift
 
             logger.info(f'Data without raman shift: {data_raman_shift}')
 

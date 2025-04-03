@@ -51,7 +51,7 @@ async def main():
         await ccd.set_speed(2)  # 1 MHz Ultra
 
         ##pb
-        #set_center_wavelength call must occur before set_x_axis_conversion_type call. 
+        #set_center_wavelength call must occur before set_x_axis_conversion_type call.
         #center wavelength will be dynamically updated as part of range scan
         await ccd.set_center_wavelength(mono.id(), 0)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
@@ -123,7 +123,7 @@ async def capture(ccd):
         # for AcquisitionFormat.SPECTRA:
         # xy_data = raw_data[0]['roi'][0]['xyData']
         # for AcquisitionFormat.IMAGE:
-        xy_data = [raw_data[0]['roi'][0]['xData'], raw_data[0]['roi'][0]['yData']]
+        xy_data = [raw_data["acquisition"][0]['roi'][0]['xData'], raw_data["acquisition"][0]['roi'][0]['yData']]
         logger.info(xy_data)
 
     else:

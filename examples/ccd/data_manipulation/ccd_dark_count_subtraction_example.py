@@ -46,6 +46,7 @@ async def main():
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
         logger.info(await ccd.get_speed_token())
         data_shutter_closed = []
+        await ccd.set_center_wavelength()
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=False)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
@@ -73,11 +74,11 @@ async def main():
             data_shutter_open = await ccd.get_acquisition_data()
             logger.info(f'Data with open shutter: {data_shutter_open}')
 
-        data_shutter_open_selected = data_shutter_open[0]['roi'][0]['yData'][0]
-        data_shutter_closed_selected = data_shutter_closed[0]['roi'][0]['yData'][0]
+        data_shutter_open_selected = data_shutter_open["acquisition"][0]['roi'][0]['yData'][0]
+        data_shutter_closed_selected = data_shutter_closed["acquisition"][0]['roi'][0]['yData'][0]
         data_without_noise = await subtract_dark_count(data_shutter_open_selected, data_shutter_closed_selected)
         data_subtracted = data_shutter_open
-        data_subtracted[0]['roi'][0]['yData'][0] = data_without_noise
+        data_subtracted["acquisition"][0]['roi'][0]['yData'][0] = data_without_noise
 
         logger.info(f'Data without noise: {data_subtracted}')
 
