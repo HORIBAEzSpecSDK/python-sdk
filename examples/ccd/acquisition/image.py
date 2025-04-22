@@ -38,7 +38,7 @@ async def main():
         # await wait_for_mono(mono)
 
         # ccd config
-        await ccd.set_acquisition_count(200)
+        await ccd.set_acquisition_count(100)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
         await ccd.set_timer_resolution(TimerResolution.MICROSECONDS)
         await ccd.set_exposure_time(1)
