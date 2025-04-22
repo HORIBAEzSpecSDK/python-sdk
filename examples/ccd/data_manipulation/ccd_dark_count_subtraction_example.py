@@ -46,7 +46,6 @@ async def main():
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
         logger.info(await ccd.get_speed_token())
         data_shutter_closed = []
-        await ccd.set_center_wavelength()
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=False)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
