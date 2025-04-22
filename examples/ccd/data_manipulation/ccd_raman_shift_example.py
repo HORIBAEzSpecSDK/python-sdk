@@ -83,7 +83,7 @@ async def main():
             data_raman_shift = data_wavelength
             data_raman_shift["acquisition"][0]['roi'][0]['xData'][0] = raman_shift
 
-            logger.info(f'Data without raman shift: {data_raman_shift}')
+            logger.info(f'Data with raman shift: {data_raman_shift}')
 
     finally:
         await ccd.close()
