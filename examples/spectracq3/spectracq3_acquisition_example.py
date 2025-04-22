@@ -29,6 +29,7 @@ async def main():
     wavelengths = [500, 501, 502]
 
     try:
+        data = []
         for wavelength in wavelengths:
             await mono.move_to_target_wavelength(wavelength)
             while await mono.is_busy():
@@ -38,10 +39,12 @@ async def main():
             await spectracq3.set_acq_set(1, 0, 1, 0)
             await spectracq3.acq_start(1)
             await asyncio.sleep(3)
-            data = await spectracq3.get_available_data()
-            logger.info(f'Acquired data at {wavelength}nm: {data}')
-            file_name = 'acquisition_data_' + str(wavelength) + '.csv'
-            save_spectracq3_data_to_csv(data[0], file_name)
+            spectracq3_data = await spectracq3.get_available_data()
+            logger.info(f'Acquired data at {wavelength}nm: {spectracq3_data}')
+            spectracq3_data[0]["wavelength"] = wavelength
+            data.append(spectracq3_data[0])
+        file_name = 'acquisition_data_' + str(wavelengths[0]) + 'nm_' + str(wavelengths[-1]) + 'nm.csv'
+        save_spectracq3_data_to_csv(data, file_name)
 
     finally:
         await mono.close()

@@ -18,10 +18,10 @@ def save_acquisition_data_to_csv(json_data, csv_filename):
             writer.writerow([x, y])
 
 
-def save_spectracq3_data_to_csv(json_data: dict, csv_filename: str):
+def save_spectracq3_data_to_csv(json_data: list[dict], csv_filename: str):
 
     headers = [
-        'elapsedTime', 'currentSignal_value', 'currentSignal_unit', 'pmtSignal_value', 'pmtSignal_unit',
+        'wavelength', 'elapsedTime', 'currentSignal_value', 'currentSignal_unit', 'pmtSignal_value', 'pmtSignal_unit',
         'ppdSignal_value', 'ppdSignal_unit', 'voltageSignal_value', 'voltageSignal_unit',
         'eventMarker', 'overscaleCurrentChannel', 'overscaleVoltageChannel', 'pointNumber'
     ]
@@ -31,18 +31,20 @@ def save_spectracq3_data_to_csv(json_data: dict, csv_filename: str):
         writer = csv.writer(file)
         writer.writerow(headers)
 
-        row = [
-            json_data['elapsedTime'],
-            json_data['currentSignal']['value'], json_data['currentSignal']['unit'],
-            json_data['pmtSignal']['value'], json_data['pmtSignal']['unit'],
-            json_data['ppdSignal']['value'], json_data['ppdSignal']['unit'],
-            json_data['voltageSignal']['value'], json_data['voltageSignal']['unit'],
-            json_data['eventMarker'],
-            json_data['overscaleCurrentChannel'],
-            json_data['overscaleVoltageChannel'],
-            json_data['pointNumber']
-        ]
-        writer.writerow(row)
+        for data in json_data:
+            row = [
+                data['wavelength'],
+                data['elapsedTime'],
+                data['currentSignal']['value'], data['currentSignal']['unit'],
+                data['pmtSignal']['value'], data['pmtSignal']['unit'],
+                data['ppdSignal']['value'], data['ppdSignal']['unit'],
+                data['voltageSignal']['value'], data['voltageSignal']['unit'],
+                data['eventMarker'],
+                data['overscaleCurrentChannel'],
+                data['overscaleVoltageChannel'],
+                data['pointNumber']
+            ]
+            writer.writerow(row)
 
 
 if __name__ == '__main__':
