@@ -10,7 +10,7 @@ from horiba_sdk.devices.single_devices import Monochromator
 
 
 async def main():
-    excitation_wavelength = 520.0
+    excitation_wavelength = float(input("Enter the excitation wavelength (float value): "))
     acquisition_format = AcquisitionFormat.SPECTRA
     device_manager = DeviceManager(start_icl=True)
     await device_manager.start()
@@ -39,7 +39,7 @@ async def main():
             await mono.set_turret_grating(Monochromator.Grating.SECOND)
             await wait_for_mono(mono)
 
-        target_wavelength = 500
+        target_wavelength = float(input("Enter the target wavelength (float value): "))
         await mono.move_to_target_wavelength(target_wavelength)
         logger.info(f'Moving to target wavelength {target_wavelength}...')
         await wait_for_mono(mono)
