@@ -49,8 +49,10 @@ class LinearSpectraStitch(SpectraStitch):
         return self._stitched_spectrum
 
     def _stitch_spectra(self, spectrum1: List[List[float]], spectrum2: List[List[float]]) -> List[List[float]]:
-        fx1, fy1 = spectrum1
-        fx2, fy2 = spectrum2
+        fx1 = spectrum1[0]
+        fy1 = spectrum1[1][0]
+        fx2 = spectrum2[0]
+        fy2 = spectrum2[1][0]
 
         # Convert to numpy arrays
         x1: ndarray[Any, dtype[Any]] = array(fx1)
@@ -61,7 +63,7 @@ class LinearSpectraStitch(SpectraStitch):
         # Sort spectra while maintaining x-y correspondence
         sort1 = argsort(x1)
         sort2 = argsort(x2)
-        
+
         # Create sorted views of both arrays
         x1_sorted = x1[sort1]
         y1_sorted = y1[sort1]
@@ -71,7 +73,7 @@ class LinearSpectraStitch(SpectraStitch):
         # Calculate true overlap region
         x1_min, x1_max = x1_sorted[0], x1_sorted[-1]
         x2_min, x2_max = x2_sorted[0], x2_sorted[-1]
-        
+
         overlap_start = max(x1_min, x2_min)
         overlap_end = min(x1_max, x2_max)
 
@@ -102,4 +104,4 @@ class LinearSpectraStitch(SpectraStitch):
         x_combined = x_combined[sort_indices]
         y_combined = y_combined[sort_indices]
 
-        return [x_combined.tolist(), y_combined.tolist()]
+        return [x_combined.tolist(), [y_combined.tolist()]]

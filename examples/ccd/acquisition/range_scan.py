@@ -43,17 +43,16 @@ async def main():
         await wait_for_mono(mono)
         await mono.set_slit_position(Monochromator.Slit.A, 0.5)
         await wait_for_mono(mono)
+        wavelength = await mono.get_current_wavelength()
 
         # ccd configuration
         await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
         await ccd.set_exposure_time(100)
         await ccd.set_gain(0)  # High Light
         await ccd.set_speed(2)  # 1 MHz Ultra
+        await ccd.set_acquisition_count(1)
 
-        ##pb
-        #set_center_wavelength call must occur before set_x_axis_conversion_type call.
-        #center wavelength will be dynamically updated as part of range scan
-        await ccd.set_center_wavelength(mono.id(), 0)
+        await ccd.set_center_wavelength(mono.id(), wavelength)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
         await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
 
@@ -82,6 +81,7 @@ async def main():
             logger.info(f'Mono wavelength {mono_wavelength}')
 
             await ccd.set_center_wavelength(mono.id(), mono_wavelength)
+            await wait_for_ccd(ccd)
 
             xy_data = await capture(ccd)
             # Add debug logging to check the data structure
@@ -93,7 +93,7 @@ async def main():
         stitch = LinearSpectraStitch(captures)
         spectrum = stitch.stitched_spectra()
         # pb
-        filtered_spectrum = await filter_values(start_wavelength, end_wavelength, spectrum[0], spectrum[1])
+        filtered_spectrum = await filter_values(start_wavelength, end_wavelength, spectrum[0], spectrum[1][0])
         with open('plot_values.txt', 'w') as t:
             t.write(str(spectrum))
             t.close()
