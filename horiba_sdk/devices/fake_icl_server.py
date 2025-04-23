@@ -26,6 +26,10 @@ class FakeICLServer:
         with open(ccd_fake_responses_path) as json_file:
             self.ccd_responses = json.load(json_file)
 
+        spectracq3_fake_responses_path = os.path.join(fake_responses_path, 'spectracq3.json')
+        with open(spectracq3_fake_responses_path) as json_file:
+            self.spectracq3_responses = json.load(json_file)
+
     async def echo(self, websocket):
         async for message in websocket:
             logger.info('received: {message}', message=message)
@@ -42,6 +46,9 @@ class FakeICLServer:
                 await websocket.send(response)
             elif command['command'].startswith('ccd_'):
                 response = json.dumps(self.ccd_responses[command['command']])
+                await websocket.send(response)
+            elif command['command'].startswith('saq3_'):
+                response = json.dumps(self.spectracq3_responses[command['command']])
                 await websocket.send(response)
             else:
                 logger.info('unknown command, responding with message')

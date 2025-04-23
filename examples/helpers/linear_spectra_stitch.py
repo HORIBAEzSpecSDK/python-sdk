@@ -1,17 +1,14 @@
 from typing import Any, List
 
 from loguru import logger
-from numpy import array, concatenate, dtype, ndarray
+from numpy import argsort, array, concatenate, dtype, interp, ndarray
 from overrides import override
 
-from examples.asynchronous_examples.stitching.spectra_stitch import SpectraStitch
+from examples.helpers.spectra_stitch import SpectraStitch
 
 
-class SimpleCutSpectraStitch(SpectraStitch):
-    """Stitches a list of spectra by always keeping the values from the next spectrum in the overlap region.
-
-    .. warning:: Produces a stitched spectrum with stairs
-    """
+class LinearSpectraStitch(SpectraStitch):
+    """Stiches a list of spectra using a linear model"""
 
     def __init__(self, spectra_list: List[List[List[float]]]) -> None:
         """Constructs a linear stitch of spectra.
@@ -34,12 +31,12 @@ class SimpleCutSpectraStitch(SpectraStitch):
         """Stitches this stitch with another stitch.
 
         Parameters
-            other_stitch : SpectraStitch The other stitch to stitch with
+            other_stitch : SpectraStitch The helpers stitch to stitch with
 
         Returns:
             SpectraStitch: The stitched spectra.
         """
-        new_stitch = SimpleCutSpectraStitch([self.stitched_spectra(), other_stitch.stitched_spectra()])
+        new_stitch = LinearSpectraStitch([self.stitched_spectra(), other_stitch.stitched_spectra()])
         return new_stitch
 
     @override
@@ -67,18 +64,18 @@ class SimpleCutSpectraStitch(SpectraStitch):
             logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
             raise Exception('No overlapping region between spectra')
 
+        mask1 = (x1 >= overlap_start) & (x1 <= overlap_end)
         mask2 = (x2 >= overlap_start) & (x2 <= overlap_end)
 
-        x2_overlap = x2[mask2]
-        y2_overlap = y2[mask2]
+        y2_interp = interp(x1[mask1], x2[mask2], y2[mask2])
 
-        x1_before_overlap = x1[x1 < overlap_start]
-        y1_before_overlap = y1[x1 < overlap_start]
+        y_combined_overlap = (y1[mask1] + y2_interp) / 2
 
-        x2_after_overlap = x2[x2 > overlap_end]
-        y2_after_overlap = y2[x2 > overlap_end]
+        x_combined = concatenate((x1[~mask1], x1[mask1], x2[~mask2]))
+        y_combined = concatenate((y1[~mask1], y_combined_overlap, y2[~mask2]))
 
-        x_stitched = concatenate([x1_before_overlap, x2_overlap, x2_after_overlap])
-        y_stitched = concatenate([y1_before_overlap, y2_overlap, y2_after_overlap])
+        sort_indices = argsort(x_combined)
+        x_combined = x_combined[sort_indices]
+        y_combined = y_combined[sort_indices]
 
-        return [x_stitched.tolist(), y_stitched.tolist()]
+        return [x_combined.tolist(), y_combined.tolist()]

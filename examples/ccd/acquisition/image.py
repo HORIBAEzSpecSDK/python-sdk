@@ -38,8 +38,9 @@ async def main():
         # await wait_for_mono(mono)
 
         # ccd config
+        await ccd.set_acquisition_count(100)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
-        await ccd.set_timer_resolution(TimerResolution._1000_MICROSECONDS)
+        await ccd.set_timer_resolution(TimerResolution.MICROSECONDS)
         await ccd.set_exposure_time(1)
         await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
         await ccd.set_gain(0)  # High Light
@@ -60,13 +61,13 @@ async def main():
         # xy_data = raw_data[0]['roi'][0]['xyData']
 
         # for AcquisitionFormat.IMAGE
-        xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData']]
+            xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'][0], raw_data['acquisition'][0]['roi'][0]['yData']]
 
-        await plot_image(xy_data)
+            await plot_image(xy_data)
 
     finally:
         await ccd.close()
-        logger.info('Waiting before closing Monochromator')
+        logger.info('Waiting before closing CCD')
 
     await device_manager.stop()
 

@@ -1,0 +1,217 @@
+{
+  "saq3_discover": {
+    "id": 1234,
+    "command": "saq3_discover",
+    "results": {
+      "count": 1
+    },
+    "errors": []
+  },
+  "saq3_list": {
+    "id": 1234,
+    "command": "saq3_list",
+    "results": {
+      "devices": [
+        {
+          "deviceType": "SpectrAcq3",
+          "index": 0,
+          "serialNumber": "SAQ3-2025-001"
+        }
+      ]
+    },
+    "errors": []
+  },
+  "saq3_listCount": {
+    "id": 1234,
+    "command": "saq3_listCount",
+    "results": {
+      "count": 1
+    },
+    "errors": []
+  },
+  "saq3_open": {
+    "id": 1234,
+    "command": "saq3_open",
+    "errors": []
+  },
+  "saq3_close": {
+    "id": 1234,
+    "command": "saq3_close",
+    "errors": []
+  },
+  "saq3_isOpen": {
+    "id": 1234,
+    "command": "saq3_isOpen",
+    "results": {
+      "open": true
+    },
+    "errors": []
+  },
+  "saq3_isBusy": {
+    "id": 1234,
+    "command": "saq3_isBusy",
+    "results": {
+      "busy": false
+    },
+    "errors": []
+  },
+  "saq3_getFirmwareVersion": {
+    "id": 1234,
+    "command": "saq3_getFirmwareVersion",
+    "results": {
+      "version": "1.0.0"
+    },
+    "errors": []
+  },
+  "saq3_getFPGAVersion": {
+    "id": 1234,
+    "command": "saq3_getFPGAVersion",
+    "results": {
+      "version": "1.0.0"
+    },
+    "errors": []
+  },
+  "saq3_getBoardRevision": {
+    "id": 1234,
+    "command": "saq3_getBoardRevision",
+    "results": {
+      "revision": "Rev A"
+    },
+    "errors": []
+  },
+  "saq3_getSerialNumber": {
+    "id": 1234,
+    "command": "saq3_getSerialNumber",
+    "results": {
+      "serialNumber": "SAQ3-2025-001"
+    },
+    "errors": []
+  },
+  "saq3_setIntegrationTime": {
+    "id": 1234,
+    "command": "saq3_setIntegrationTime",
+    "errors": []
+  },
+  "saq3_getIntegrationTime": {
+    "id": 1234,
+    "command": "saq3_getIntegrationTime",
+    "results": {
+      "time": 100
+    },
+    "errors": []
+  },
+  "saq3_setHVBiasVoltage": {
+    "id": 1234,
+    "command": "saq3_setHVBiasVoltage",
+    "errors": []
+  },
+  "saq3_getHVBiasVoltage": {
+    "id": 1234,
+    "command": "saq3_getHVBiasVoltage",
+    "results": {
+      "voltage": 5.0
+    },
+    "errors": []
+  },
+  "saq3_getMaxHVVoltageAllowed": {
+    "id": 1234,
+    "command": "saq3_getMaxHVVoltageAllowed",
+    "results": {
+      "maxVoltage": 10.0
+    },
+    "errors": []
+  },
+  "saq3_defineAcqSet": {
+    "id": 1234,
+    "command": "saq3_defineAcqSet",
+    "errors": []
+  },
+  "saq3_acqStart": {
+    "id": 1234,
+    "command": "saq3_acqStart",
+    "errors": []
+  },
+  "saq3_acqStop": {
+    "id": 1234,
+    "command": "saq3_acqStop",
+    "errors": []
+  },
+  "saq3_acqPause": {
+    "id": 1234,
+    "command": "saq3_acqPause",
+    "errors": []
+  },
+  "saq3_acqContinue": {
+    "id": 1234,
+    "command": "saq3_acqContinue",
+    "errors": []
+  },
+  "saq3_getAvailableData": {
+    "id": 1234,
+    "command": "saq3_getAvailableData",
+    "results": {
+      "data": [0, 1, 2, 3, 4]
+    },
+    "errors": []
+  },
+  "saq3_isDataAvailable": {
+    "id": 1234,
+    "command": "saq3_isDataAvailable",
+    "results": {
+      "available": true
+    },
+    "errors": []
+  },
+  "saq3_forceTrigger": {
+    "id": 1234,
+    "command": "saq3_forceTrigger",
+    "errors": []
+  },
+  "saq3_setTriggerInPolarity": {
+    "id": 1234,
+    "command": "saq3_setTriggerInPolarity",
+    "errors": []
+  },
+  "saq3_getTriggerInPolarity": {
+    "id": 1234,
+    "command": "saq3_getTriggerInPolarity",
+    "results": {
+      "polarity": "active_high"
+    },
+    "errors": []
+  },
+  "saq3_setInTriggerMode": {
+    "id": 1234,
+    "command": "saq3_setInTriggerMode",
+    "errors": []
+  },
+  "saq3_getInTriggerMode": {
+    "id": 1234,
+    "command": "saq3_getInTriggerMode",
+    "results": {
+      "mode": "continuous"
+    },
+    "errors": []
+  },
+  "saq3_getLastError": {
+    "id": 1234,
+    "command": "saq3_getLastError",
+    "results": {
+      "error": "No error"
+    },
+    "errors": []
+  },
+  "saq3_getErrorLog": {
+    "id": 1234,
+    "command": "saq3_getErrorLog",
+    "results": {
+      "log": []
+    },
+    "errors": []
+  },
+  "saq3_clearErrorLog": {
+    "id": 1234,
+    "command": "saq3_clearErrorLog",
+    "errors": []
+  }
+} 

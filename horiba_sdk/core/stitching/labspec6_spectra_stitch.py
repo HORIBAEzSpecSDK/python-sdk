@@ -4,13 +4,13 @@ from loguru import logger
 from numpy import array, concatenate, dtype, ndarray
 from overrides import override
 
-from examples.asynchronous_examples.stitching.spectra_stitch import SpectraStitch
+from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
 
 
-class YDisplacementSpectraStitch(SpectraStitch):
-    """Stiches a list of spectra using a linear model"""
+class LabSpec6SpectraStitch(SpectraStitch):
+    """Stitches a list of spectra using a weighted average as in LabSpec6"""
 
-    def __init__(self, spectrum1: List[List[float]], spectrum2: List[List[float]], y_displacement_count: int) -> None:
+    def __init__(self, spectra_list: List[List[List[float]]]) -> None:
         """Constructs a linear stitch of spectra.
 
         .. warning:: The spectra in the list must overlap
@@ -18,10 +18,11 @@ class YDisplacementSpectraStitch(SpectraStitch):
         Parameters
             spectra_list : List[List[List[float]]] List of spectra to stitch in the form [[x1_values, y1_values],
             [x2_values, y2_values], etc].
-            y_displacement_count : int The amount of displacement in the y direction for the second spectrum
         """
-        self._y_displacement_count = y_displacement_count
-        stitched_spectrum = self._stitch_spectra(spectrum1, spectrum2)
+        stitched_spectrum = spectra_list[0]
+
+        for i in range(1, len(spectra_list)):
+            stitched_spectrum = self._stitch_spectra(stitched_spectrum, spectra_list[i])
 
         self._stitched_spectrum: List[List[float]] = stitched_spectrum
 
@@ -35,7 +36,7 @@ class YDisplacementSpectraStitch(SpectraStitch):
         Returns:
             SpectraStitch: The stitched spectra.
         """
-        new_stitch = YDisplacementSpectraStitch([self.stitched_spectra(), other_stitch.stitched_spectra()])
+        new_stitch = LabSpec6SpectraStitch([self.stitched_spectra(), other_stitch.stitched_spectra()])
         return new_stitch
 
     @override
@@ -63,25 +64,27 @@ class YDisplacementSpectraStitch(SpectraStitch):
             logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
             raise Exception('No overlapping region between spectra')
 
-        # Masks for overlapping region
         mask1 = (x1 >= overlap_start) & (x1 <= overlap_end)
         mask2 = (x2 >= overlap_start) & (x2 <= overlap_end)
 
         x1_overlap = x1[mask1]
         y1_overlap = y1[mask1]
 
-        y2_displaced = y2 + self._y_displacement_count
-        y2_overlap = y2_displaced[mask2]
+        x2_overlap = x2[mask2]
+        y2_overlap = y2[mask2]
 
-        y_stitched_overlap = (y1_overlap + y2_overlap) / 2
+        A = (x1_overlap - overlap_start) / (overlap_end - overlap_start)
+        B = (overlap_end - x2_overlap) / (overlap_end - overlap_start)
 
-        x1_before_overlap = x1[x1 < overlap_start]
-        y1_before_overlap = y1[x1 < overlap_start]
+        y_stitched = (y1_overlap * A + y2_overlap * B) / (A + B)
 
-        x2_after_overlap = x2[x2 > overlap_end]
-        y2_after_overlap = y2_displaced[x2 > overlap_end]
+        x_before = x1[x1 < overlap_start]
+        y_before = y1[x1 < overlap_start]
 
-        x_stitched = concatenate([x1_before_overlap, x1_overlap, x2_after_overlap])
-        y_stitched = concatenate([y1_before_overlap, y_stitched_overlap, y2_after_overlap])
+        x_after = x2[x2 > overlap_end]
+        y_after = y2[x2 > overlap_end]
 
-        return [x_stitched.tolist(), y_stitched.tolist()]
+        x_stitched = concatenate([x_before, x1_overlap, x_after])
+        y_stitched_final = concatenate([y_before, y_stitched, y_after])
+
+        return [x_stitched.tolist(), y_stitched_final.tolist()]

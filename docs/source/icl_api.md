@@ -1,7 +1,8 @@
 # ICL API Programmers Manual
 
-revision: **0.1**  
-date: **12/13/2023**
+revision: **0.2**  
+date: **01/06/2025**
+ICL version: **2.0.0.179**
 
 This document describes the remote command and data API provided by the ICL.
 
@@ -84,14 +85,38 @@ This document describes the remote command and data API provided by the ICL.
     - [ccd\_getAcquisitionData](#ccd_getacquisitiondata)
     - [ccd\_setCenterWavelength](#ccd_setcenterwavelength)
     - [ccd\_calculateRangeModePositions](#ccd_calculaterangemodepositions)
-
   - [SpectrAcq3 - Single Channel Detector Interface](#spectracq3---single-channel-detector-interface)
-    - [scd\_discover](#scd_discover)
-    - [scd\_list](#scd_list)
-    - [scd\_listCount](#scd_listcount)
-    - [scd\_open](#scd_open)
-    - [scd\_close](#scd_close)
-    - [scd\_isOpen](#scd_isopen)
+    - [saq3\_discover](#saq3_discover)
+    - [saq3\_list](#saq3_list)
+    - [saq3\_listCount](#saq3_listCount)
+    - [saq3\_open](#saq3_open)
+    - [saq3\_close](#saq3_close)
+    - [saq3\_isOpen](#saq3_isOpen)
+    - [saq3\_isBusy](#saq3_isBusy)
+    - [saq3\_getFirmwareVersion](#saq3_getFirmwareVersion)
+    - [saq3\_getFPGAVersion](#saq3_getFPGAVersion)
+    - [saq3\_getBoardRevision](#saq3_getBoardRevision)
+    - [saq3\_getSerialNumber](#saq3_getSerialNumber)
+    - [saq3\_setHVBiasVoltage](#saq3_setHVBiasVoltage)
+    - [saq3\_getHVBiasVoltage](#saq3_getHVBiasVoltage)
+    - [saq3\_getMaxHVVoltageAllowed](#saq3_getMaxHVVoltageAllowed)
+    - [saq3\_setAcqSet](#saq3_setAcqSet)
+    - [saq3\_getAcqSet](#saq3_getAcqSet)
+    - [saq3\_acqStart](#saq3_acqStart)
+    - [saq3\_acqStop](#saq3_acqStop)
+    - [saq3\_acqPause](#saq3_acqPause)
+    - [saq3\_acqContinue](#saq3_acqContinue)
+    - [saq3\_getAvailableData](#saq3_getAvailableData)
+    - [saq3\_isDataAvailable](#saq3_isDataAvailable)
+    - [saq3\_forceTrigger](#saq3_forceTrigger)
+    - [saq3\_setTriggerInPolarity](#saq3_setTriggerInPolarity)
+    - [saq3\_getTriggerInPolarity](#saq3_getTriggerInPolarity)
+    - [saq3\_setInTriggerMode](#saq3_setInTriggerMode)
+    - [saq3\_getInTriggerMode](#saq3_getInTriggerMode)
+    - [saq3\_getLastError](#saq3_getLastError)
+    - [saq3\_getErrorLog](#saq3_getErrorLog)
+    - [saq3\_clearErrorLog](#saq3_clearErrorLog)
+
   - [Binary Events](#binary-events)
   - [Error Codes](#error-codes)
 
@@ -3840,9 +3865,9 @@ Finds the center wavelength positions based on the input range and pixel overlap
 
 ## SpectrAcq3 - Single Channel Detector Interface
 
-### <a id="scd_discover"></a>scd_discover
+### <a id="saq3_discover"></a>saq3_discover
 
-Attempts to find SpectrAcq3 hardware connected and powered on the USB bus.
+Attempts to discover SpectrAcq3 hardware that is connected and powered on via the USB bus.
 
 **Command parameters:**
 >| parameter  | description   |
@@ -3859,29 +3884,31 @@ Attempts to find SpectrAcq3 hardware connected and powered on the USB bus.
 ```json
 {  
     "id": 1234,
-    "command": "scd_discover"
+    "command": "saq3_discover"
 }
 ```
 
 **Example response:**
 
 ```json
-{  
-    "id": 1234,
-    "command": "scd_discover",
-    "results": {
-        "count": 1
-    }
-  "errors": []
+{
+  "command": "saq3_discover",
+  "errors": [],
+  "id": 1234,
+  "results": {
+    "count": 1
+  }
 }
 ```
 
 <div style="page-break-before:always">&nbsp;</div>
 <p></p>
 
-### <a id="scd_list"></a>scd_list
 
-Returns a formatted list of strings identifying each unit found.
+### <a id="saq3_list"></a>saq3_list
+
+The saq3_list command retrieves a list of SpectrAcq3 devices discovered by the saq3_discover command, 
+providing detailed information about each connected device.
 
 **Command parameters:**
 >| parameter  | description   |
@@ -3891,24 +3918,14 @@ Returns a formatted list of strings identifying each unit found.
 **Response results:**
 >| results | description |
 >|---|---|
->|list|Array of strings each describing a SpectrAcq3 that was found. See below for format.|
-
-String format per CCD found:
-
-```c++
-<index>;<SpectrAcq3 name>;<SpectrAcq3 serialnumber>
-```
-
-*index* - Integer index to use in SpectrAcq3 commands to indicate which SpectrAcq3 to target.  
-*SpectrAcq3 name* - TBD  
-*SpectrAcq3 serialnumber* - SpectrAcq3 reported serial number.  
+>| devices | Array of discovered SpectrAcq3 devices. Each discovered SpectrAcq3 consists of the following details: <br> deviceType - SpectrAcq3 device description <br> index - Index of the discovered device <br> serialNumber - SpectrAcq3 device serial number|
 
 **Example command:**
 
 ```json
 {
     "id": 1234,
-    "command": "scd_list"
+    "command": "saq3_list"
 }
 ```
 
@@ -3916,163 +3933,85 @@ String format per CCD found:
 
 ```json
 {
-    "id": 1234,
-    "command": "scd_list",
-    "results": {
-        "list": [
-            "0;iHR550;sn12345",
-            "1;iHR320;snabscde",
-        ]
-    }
-  "errors": []
-}
-```
-
-<div style="page-break-before:always">&nbsp;</div>
-<p></p>
-
-### <a id="scd_listcount"></a>scd_listCount
-
-Returns the number of SpectrAcq3's found on the USB bus.
-
-**Command parameters:**
->| parameter  | description   |
->|---|---|
->|_none_||
-
-**Response results:**
->| results | description |
->|---|---|
->|count|Integer. Indicates the number of SpectrAcq3's found|
-
-**Example command:**
-
-```json
-{
-    "id": 1234,
-    "command": "scd_listCount"
-}
-```
-
-**Example response:**
-
-```json
-{  
-    "id": 1234,
-    "command": "scd_listCount",
-    "results": {
-        "count": 1
-    }
-  "errors": []
-}
-```
-
-<div style="page-break-before:always">&nbsp;</div>
-<p></p>
-
-### <a id="scd_open"></a>scd_open
-
-Opens communications with the SpectrAcq3 indicated by the index command parameter.  
-
-**Command parameters:**
->| parameter  | description   |
->|---|---|
->| index | Integer. Used to identify which SpectrAcq3 to target. See _scd_list_ command|
-
-**Response results:**
->| results | description |
->|---|---|
->|_none_||
-
-**Example command:**
-Open first (index 0) SpectrAcq3 in the list of monos discoverd.
-
-```json
-{  
-    "id": 1234,
-    "command": "scd_open",
-    "parameters":{
-        "index": 0
-    }
-}
-```
-
-**Example response:**
-
-```json
-{
-    "id": 1234,
-    "command": "scd_open",
-    "errors": [
+  "command": "saq3_list",
+  "errors": [],
+  "id": 1234,
+  "results": {
+    "devices": [
+      {
+        "deviceType": "HORIBA Scientific Spectracq 3",
+        "index": 0,
+        "serialNumber": "SNPG20070026"
+      }
     ]
+  }
 }
 ```
 
 <div style="page-break-before:always">&nbsp;</div>
 <p></p>
 
-### <a id="scd_close"></a>scd_close
 
-Closes communications with the CCD indicated by the index.  
+### <a id="saq3_listCount"></a>saq3_listCount
 
-**Command Parameters:**
+The saq3_listCount command retrieves a count of SpectrAcq3 devices discovered by the saq3_discover command.
+
+**Command parameters:**
 >| parameter  | description   |
->|---|---|
->| index | Integer. Used to identify which SpectrAcq3 to target. See _scd_list_ command|
-
-**Response Results:**
->| results | description |
 >|---|---|
 >|_none_||
 
+**Response results:**
+>| results | description |
+>|---|---|
+>| count | Number of discovered SpectrAcq3 devices.
 **Example command:**
 
 ```json
 {
     "id": 1234,
-    "command": "scd_close",
-    "parameters":{
-        "index": 0
-    }
+    "command": "saq3_listCount"
 }
 ```
 
 **Example response:**
 
 ```json
-{  
+{
+    "command": "saq3_listCount",
+    "errors": [],
     "id": 1234,
-    "command": "scd_close",
-    "errors": [
-    ]
+    "results": {
+        "count": 10
+    }
 }
 ```
 
 <div style="page-break-before:always">&nbsp;</div>
 <p></p>
 
-### <a id="scd_isopen"></a>scd_isOpen
+### <a id="saq3_open"></a>saq3_open
 
-Returns _true_ if selected SpectrAcq3 is open.  
+Opens communication with the SpectrAcq3 device specified by the index parameter.
 
-**Command Parameters:**
+**Command parameters:**
 >| parameter  | description   |
 >|---|---|
->| index | Integer. Used to identify which SpectrAcq3 to target. See _scd_list_ command|
+>|index| The index of the SpectrAcq3 device you want to open communication with. |
 
 **Return Results:**
 >| results | description |
 >|---|---|
->|open|boolean. true = open|
+>| _none_|
 
 **Example command:**
 
 ```json
 {
     "id": 1234,
-    "command": "scd_isOpen",
-    "parameters":{
-        "index": 0
+    "command": "saq3_open",
+    "parameters": {
+        "index": 1
     }
 }
 ```
@@ -4081,13 +4020,1207 @@ Returns _true_ if selected SpectrAcq3 is open.
 
 ```json
 {
+    "command": "saq3_open",
+    "errors": [],
     "id": 1234,
-    "command": "scd_isOpen",
-    "results":{
-        "open": true
+    "results": {}
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="saq3_close"></a>saq3_close
+
+Closes communication with the SpectrAcq3 device specified by the index parameter.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to close the communication. |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| _none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_close",
+    "parameters": {
+        "index": 1
     }
-    "errors": [
-    ]
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_close",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_isOpen"></a>saq3_isOpen
+
+Checks if communication with the SpectrAcq3 device is open for the given index.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to check the communication status |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| open | Indicates whether the USB communication is open (true) or closed (false).
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_isOpen",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_isOpen",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "open" : true
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_isBusy"></a>saq3_isBusy
+
+Checks whether the instrument is busy (e.g., performing initialization or data acquisition).
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to check the busy status |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| isBusy | Indicates whether the SpectrAcq3 is busy (true) or idle (false).
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_isBusy",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_isBusy",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "isBusy" : true
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="saq3_getFirmwareVersion"></a>saq3_getFirmwareVersion
+
+Get the firmware version of the device for the given index.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to get the firmware version |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| firmwareVersion | Firmware version of the device
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getFirmwareVersion",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getFirmwareVersion",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "firmwareVersion" : "3.2.0"
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="saq3_getFPGAVersion"></a>saq3_getFPGAVersion
+
+Get the FPGA version of the device for the given index.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to get the FPGA version |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| FpgaVersion | FPGA version of the device
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getFPGAVersion",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getFPGAVersion",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "FpgaVersion" : "3.2.0"
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="saq3_getBoardRevision"></a>saq3_getBoardRevision
+
+Get the Board revision of the device for the given index.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to get the Board revision |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| boardRevision | Board Revision of the device
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getBoardRevision",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getBoardRevision",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "boardRevision" : "B"
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="saq3_getSerialNumber"></a>saq3_getSerialNumber
+
+Get the Serial number of the device for the given index.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to get the Serial number |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| serialNumber | Serial number of the device
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getSerialNumber",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getSerialNumber",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "serialNumber" : "123456SN"
+    }
+}
+```
+
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="saq3_setHVBiasVoltage"></a>saq3_setHVBiasVoltage
+
+Set the High bias voltage in <b>Volts</b>. If not set then default value will be used.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to set the high bias voltage |
+>|biasVoltage| Set the high voltage in <b>volts</b>
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| _none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_setHVBiasVoltage",
+    "parameters": {
+        "index": 1,
+        "biasVoltage": 50
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_setHVBiasVoltage",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="saq3_getHVBiasVoltage"></a>saq3_getHVBiasVoltage
+
+Gets the bias voltage that was previously set. If no bias voltage has been explicitly set, the default value is returned.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to get the bias voltage |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| biasVoltage | Gets the voltage that was previously set. The voltage time is returned in volts.
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getHVBiasVoltage",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getHVBiasVoltage",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "biasVoltage": 50
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="saq3_getMaxHVVoltageAllowed"></a>saq3_getMaxHVVoltageAllowed
+
+Gets the maximum bias high voltage allowed in <b>Volts</b>
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to get the maximum high bias voltage |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>| biasVoltage | Gets the voltage that was previously set. The voltage is returned in volts.
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getMaxHVVoltageAllowed",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getMaxHVVoltageAllowed",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "biasVoltage": 100
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_setAcqSet"></a>saq3_setAcqSet
+
+Defines and sends the parameters for the acquisition set to perform the acquisition. 
+<br>If the acquisition set is not defined, a single-point scan with default settings is performed.
+<br>Parameters that are not explicitly defined are set to their default values.
+<br>
+Parameters to define for the acquisition
+- Scan Count : Number of acquisitions to perform
+- Time Steps : Time interval in seconds between acquisitions
+- Integration time: Integration time in seconds 
+- External user defined parameter
+
+Returns an error if an acquisition is already in progress.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to define the acquisition set |
+>|scanCount|Must be at least 1. The total accumulated value for all Acquisition sets cannot exceed 131,070.(Max. Total Point Count)|
+>|timeStep|Interval between successive scans for time based scan.<br>If 0/not defined, the scans take place as fast as possible (limited by integration time and monochromator move if applicable)|
+>|integrationTime|Integration time in seconds |
+>|externalParam|User defined value|
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_setAcqSet",
+    "parameters": {
+        "index": 1,
+        "scanCount": 10,
+        "timeStep": 1,
+        "integrationTime": 10,
+        "externalParam": 0
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_setAcqSet",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+
+### <a id="saq3_getAcqSet"></a>saq3_getAcqSet
+
+Get the acquisition set parameters.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to get the acquisition set |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|scanCount|Number of acquisition to perform|
+>|timeStep|Interval between successive scans for time based scan in seconds. If 0/not defined, the scans take place as fast as possible (limited by integration time and monochromator move if applicable)|
+>|integrationTime| Integration time in seconds|
+>|externalParam|User defined value|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getAcqSet",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getAcqSet",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "scanCount": 10,
+        "timeStep": 1,
+        "integrationTime": 10,
+        "externalParam": 0
+    }
+}
+```
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_acqStart"></a>saq3_acqStart
+Define acquisition sets before starting an acquisition. Ensure acquisition preparation is completed successfully.
+<br>Starting an acquisition will return an error if:
+- An acquisition is already running, or
+- Acquisition preparation has not been completed.
+- In the event of errors in the defined parameters, the result will include an `errorCount` field indicating the number of errors detected.<br>
+use [saq3_getErrorLog](#saq3_getErrorLog) to get the detailed error. 
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to start the acquisition |
+>|trigger| Integer indicating the trigger mode |
+
+**Trigger Modes:**
+>| Mode  | description   |
+>|---|---|
+>|1| 1st data started on Start command, all subsequent data acquired based on interval time|
+>|2| 1st data started by Trigger after start Command, all subsequent data acquired based on interval time |
+>|3| Each data acquisition waits for Trigger|
+
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|errorCount| field indicating the number of errors detected
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_acqStart",
+    "parameters": {
+        "index": 1,
+        "trigger": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_acqStart",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_acqStop"></a>saq3_acqStop
+
+Stops the current acquisition. The current data point is discarded. The acquisition process must be checked and restarted if needed.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to stop the acquisition |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_acqStop",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_acqStop",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_acqPause"></a>saq3_acqPause
+
+Pause active Acquisition.  Current point is completed. Can be continued. Needs to be Stopped to start a new Acquisition.
+<br>An error will be returned if a pause is received while an acquisition is not running.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to pause the acquisition |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_acqPause",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_acqPause",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_acqContinue"></a>saq3_acqContinue
+
+Restart a paused acquisition.
+<br>An error will be returned if continue is received when not paused.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to restart the paused acquisition |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_acqContinue",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_acqContinue",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_isDataAvailable"></a>saq3_isDataAvailable
+Check whether the acquired data is available.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to restart the paused acquisition |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_isDataAvailable",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_isDataAvailable",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "isDataAvailable" : false
+    }
+}
+```
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_getAvailableData"></a>saq3_getAvailableData
+Retrieve the acquired data that is available so far.
+<br><b>Note</b>: Once the acquired data is read, it will be removed from the device/software's data buffer. 
+<br>Ensure that you save the data to a local buffer or storage before reading to prevent data loss.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device for which you want to restart the paused acquisition |
+
+**Return Results:**
+
+| **Field** | **Description** |
+|---|---|
+| `data` | Array of measurement records containing the following fields: |
+| └─ `currentSignal` | Current measurement. |
+| &emsp; └─ `unit` | `"uAmps"` (microamps). |
+| &emsp; └─ `value` | Current value (e.g., `9.151`). |
+| └─ `elapsedTime` | Time since start (in microseconds). |
+| └─ `eventMarker` | `true` if an event occurred; otherwise, `false`. |
+| └─ `overscaleCurrentChannel` | `true` if the current channel is over-scaled. |
+| └─ `overscaleVoltageChannel` | `true` if the voltage channel is over-scaled. |
+| └─ `pmtSignal` | PMT signal measurement. |
+| &emsp; └─ `unit` | `"Counts/Second"`. |
+| &emsp; └─ `value` | Signal value (e.g., `436278`). |
+| └─ `pointNumber` | Sequential point identifier (e.g., `0`). |
+| └─ `ppdSignal` | PPD signal measurement. |
+| &emsp; └─ `unit` | `"Counts/Second"`. |
+| &emsp; └─ `value` | Signal value (e.g., `0`). |
+| └─ `voltageSignal` | Voltage measurement. |
+| &emsp; └─ `unit` | `"Volts"`. |
+| &emsp; └─ `value` | Voltage value (e.g., `-0.3545`). |
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getAvailableData",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getAvailableData",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "data": 
+        [
+            {
+                "currentSignal": {
+                "unit": "uAmps",
+                "value": 9.15133285522461
+                },
+                "elapsedTime": 0,
+                "eventMarker": false,
+                "overscaleCurrentChannel": false,
+                "overscaleVoltageChannel": false,
+                "pmtSignal": {
+                "unit": "Counts/Second",
+                "value": 436278
+                },
+                "pointNumber": 0,
+                "ppdSignal": {
+                "unit": "Counts/Second",
+                "value": 0
+                },
+                "voltageSignal": {
+                "unit": "Volts",
+                "value": -0.3545374572277069
+                }
+            },
+            {
+                "currentSignal": {
+                "unit": "uAmps",
+                "value": 9.151333808898926
+                },
+                "elapsedTime": 500,
+                "event_marker": false,
+                "overscaleCurrentChannel": false,
+                "overscaleVoltageChannel": false,
+                "pmtSignal": {
+                "unit": "Counts/Second",
+                "value": 437530
+                },
+                "pointNumber": 1,
+                "ppdSignal": {
+                "unit": "Counts/Second",
+                "value": 0
+                },
+                "voltageSignal": {
+                "unit": "Volts",
+                "value": -0.35507217049598694
+                }
+            }
+        ]
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_forceTrigger"></a>saq3_forceTrigger
+Software Trigger, treated the same as Hardware Trigger (IN).
+<br>If no acquisition is in progress, the trigger will be ignored.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_forceTrigger",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_forceTrigger",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_setTriggerInPolarity"></a>saq3_setTriggerInPolarity
+
+Defines the polarity of the input trigger.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+>|polarity| Input trigger polarity <br> 0 - Active Low (falling edge) <br> 1 - Active High (rising edge)|
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|none|
+
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_setTriggerInPolarity",
+    "parameters": {
+        "index": 1,
+        "polarity": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_setTriggerInPolarity",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_getTriggerInPolarity"></a>saq3_getTriggerInPolarity
+
+Returns the polarity of the input trigger.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|polarity| Input trigger polarity <br> 0 - Active Low (falling edge) <br> 1 - Active High (rising edge)|
+
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getTriggerInPolarity",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getTriggerInPolarity",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "polarity": 1
+    }
+}
+```
+
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_setInTriggerMode"></a>saq3_setInTriggerMode
+
+Tell the device how Hardware Trigger pin is used. Returns Error if Acquisition is in Progress.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+>|mode| Mode of hardware trigger pin. <br> 0: TTL input <br> 1: Event marker input <br> 2: Hardware trigger input
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_setInTriggerMode",
+    "parameters": {
+        "index": 1,
+        "mode" : 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_setInTriggerMode",
+    "errors": [],
+    "id": 1234,
+    "results": {}
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_getInTriggerMode"></a>saq3_getInTriggerMode
+
+Returns the acquisition trigger mode defined in [saq3_acqStart](#saq3_acqstart), as well as, the hardware input trigger mode defined in [saq3_setInTriggerMode](#saq3_setintriggermode).
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|scanStartMode|Mode of the acquisition trigger defined in [saq3_startAcq](#saq3_acqstart) <br> 1: First data started on Start command, all subsequent data acquired based on interval time <br> 2: First data started by Trigger after Start command, all subsequent data acquired based on interval time <br> 3: Each data acquisition waits for Trigger |
+>|inputTriggerMode|Mode of the hardware input trigger defined in [saq3_setInTriggerMode](#saq3_setintriggermode) <br> 0: TTL input <br> 1: Event marker input <br> 2: Hardware trigger input|
+
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getInTriggerMode",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getInTriggerMode",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "inputTriggerMode": 1,
+        "scanStartMode" : 1
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_getLastError"></a>saq3_getLastError
+Returns and clears the last error.  
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|error | The last error |
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getLastError",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getLastError",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "error": "[E];-900;Acquisition still running!!!"
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_getErrorLog"></a>saq3_getErrorLog
+Read the error buffer containing a list of logged errors.
+<br>The error log is cleared on receipt of an Initialize All command or a Clear Error Log command.
+<br>The error log is cleared at power on.  
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getErrorLog",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_getErrorLog",
+    "errors": [],
+    "id": 1234,
+    "results": {
+        "errors": "[E];-900;Acquisition still running!!!"
+    }
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="saq3_clearErrorLog"></a>saq3_clearErrorLog
+Clear All the errors.
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>|index| The index of the SpectrAcq3 device |
+
+**Return Results:**
+>| results | description |
+>|---|---|
+>|_none_|
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_clearErrorLog",
+    "parameters": {
+        "index": 1
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+    "command": "saq3_clearErrorLog",
+    "errors": [],
+    "id": 1234,
+    "results": {}
 }
 ```
 
@@ -4159,8 +5292,34 @@ ERR_MONO_CONFIG_FORMAT_ERROR    -522
 ERR_MONO_DATA_FORMAT_ERROR      -523
 ERR_MONO_ACCESSORY_NOT_FOUND    -524
 
+ERR_SAQ3_CMD_NOT_SUPPORTED       -600
 
-ERR_SCD_CMD_NOT_SUPPORTED       -600
+ERR_SAQ3_ERROR                  -900
+ERR_SAQ3_ALREADY_INIT           -901
+ERR_SAQ3_ALREADY_OPEN           -902
+ERR_SAQ3_ALREADY_OPENING        -903
+ERR_SAQ3_ALREADY_CLOSED         -904
+ERR_SAQ3_ALREADY_UNINIT         -905
+ERR_SAQ3_NOT_INIT               -906
+ERR_SAQ3_NOT_OPEN               -907
+ERR_SAQ3_NOT_FOUND              -908
+ERR_SAQ3_INVALID_DEV_INDEX      -909
+ERR_SAQ3_CMD_NOT_SUPPORTED      -910
+ERR_SAQ3_DISCOVERY              -911
+ERR_SAQ3_CONFIG_FORMAT_ERROR    -912
+ERR_SAQ3_COMM_ERROR             -913
+ERR_SAQ3_LOST_USB_CONNECTION    -914
+ERR_SAQ3_UNKNOWN_ERROR          -915
+ERR_SAQ3_NO_DEVICE_FOUND        -916
+ERR_SAQ3_INTERFACE_CLAIM_FAILED -917
+ERR_SAQ3_RESPONSE_TOO_SHORT     -918
+ERR_SAQ3_COMMAND_FAILED         -919
+ERR_SAQ3_INVALID_RESPONSE       -920
+ERR_SAQ3_SYSTEM_BUSY            -921
+ERR_SAQ3_MISSING_INPUT_PARAM    -922
+ERR_SAQ3_MISSING_ACQ_PARAM      -923
+ERR_SAQ3_NO_DATA_AVAILABLE      -924
+ERR_SAQ3_INVALID_INPUT_PARAM    -925
 
 ```
 
@@ -4171,17 +5330,19 @@ ERR_SCD_CMD_NOT_SUPPORTED       -600
 
 ## Production Commands
 
-- [Monochromator Module Commands](#monochromator-module-commands-prod)
+- [Monochromator Commands](#monochromator-commands-prod)
     - [mono\_moveSlit](#mono_moveslit)
     - [mono\_getSlitStepPosition](#mono_getslitstepposition)
 
+- [CCD Commands](#ccd-commands-prod)
+    - [ccd\_openShutter](#ccd_openshutter)
+    - [ccd\_closeShutter](#ccd_closeshutter)
 
 
 <div style="page-break-before:always">&nbsp;</div>
 <p></p>
 
-
-## <a id="monochromator-module-commands-prod"></a>Monochromator Module Commands
+## <a id="monochromator-commands-prod"></a>Monochromator Commands
 
 ### <a id="mono_moveslit"></a>mono_moveSlit
 
@@ -4307,5 +5468,93 @@ _Note:_ The "locationId" parameter found in the mono configuration is 1-based. H
     "results": {
         "position": 250
     }  
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+## <a id="ccd-commands-prod"></a>CCD Commands
+
+### <a id="ccd_openshutter"></a>ccd_openShutter
+
+Opens the shutter, if the device is configured with a controllable shutter
+
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>| index | Integer. Used to identify which mono to control. See _ccd_list_ command|
+
+
+**Response results:**
+>| results | description |
+>|---|---|
+>|_none_ |
+
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "ccd_openShutter",
+    "parameters":{
+        "index": 0
+    }
+}
+```
+
+**Example response:**
+
+```json
+{  
+    "id": 1234,
+    "command": "ccd_openShutter",
+    "errors": [
+    ]  
+}
+```
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
+### <a id="ccd_closeshutter"></a>ccd_closeShutter
+
+Closes the shutter, if the device is configured with a controllable shutter
+
+
+**Command parameters:**
+>| parameter  | description   |
+>|---|---|
+>| index | Integer. Used to identify which mono to control. See _ccd_list_ command|
+
+
+**Response results:**
+>| results | description |
+>|---|---|
+>|_none_ |
+
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "ccd_closeShutter",
+    "parameters":{
+        "index": 0
+    }
+}
+```
+
+**Example response:**
+
+```json
+{  
+    "id": 1234,
+    "command": "ccd_closeShutter",
+    "errors": [
+    ]  
 }
 ```

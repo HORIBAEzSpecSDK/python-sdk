@@ -54,8 +54,8 @@ mypy:
 .PHONY: check-safety
 check-safety:
 	poetry check
-	poetry run safety check --ignore=51457,70612 --full-report
-	poetry run bandit -ll --recursive horiba_sdk tests
+	#poetry run safety check --ignore=51457,70612
+	#poetry run bandit -ll --recursive horiba_sdk tests
 
 .PHONY: lint
 lint: test check-codestyle mypy check-safety

@@ -31,16 +31,23 @@ async def main():
 
     try:
         # mono configuration
-        await mono.initialize()
+        if not await mono.is_initialized():
+            logger.info('Initializing Monochromator...')
+            await mono.initialize()
         await wait_for_mono(mono)
-        await mono.set_turret_grating(Monochromator.Grating.THIRD)
-        await wait_for_mono(mono)
+        current_grating = await mono.get_turret_grating()
+        if await mono.get_turret_grating() != current_grating:
+            logger.info('Setting grating to SECOND...')
+            await mono.set_turret_grating(Monochromator.Grating.SECOND)
+            await wait_for_mono(mono)
 
-        target_wavelength = 0
+        target_wavelength = 500
         await mono.move_to_target_wavelength(target_wavelength)
+        logger.info(f'Moving to target wavelength {target_wavelength}...')
         await wait_for_mono(mono)
         await mono.set_slit_position(mono.Slit.A, 0)
         await mono.set_mirror_position(mono.Mirror.ENTRANCE, mono.MirrorPosition.AXIAL)
+        logger.info('Setting slit position to A and mirror position to AXIAL...')
         await wait_for_mono(mono)
         mono_wavelength = await mono.get_current_wavelength()
         logger.info(f'Mono wavelength {mono_wavelength}')
@@ -63,15 +70,18 @@ async def main():
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
 
         if await ccd.get_acquisition_ready():
+            logger.info('Starting acquisition...')
             await ccd.acquisition_start(open_shutter=True)
             await asyncio.sleep(1)  # Wait a short period for the acquisition to start
             await wait_for_ccd(ccd)
 
             raw_data = await ccd.get_acquisition_data()
-            x_data = raw_data[0]['roi'][0]['xData']
-            y_data = raw_data[0]['roi'][0]['yData']
+            logger.info(f'Acquired data: {raw_data}')
+            x_data = raw_data['acquisition'][0]['roi'][0]['xData']
+            y_data = raw_data['acquisition'][0]['roi'][0]['yData']
             # for AcquisitionFormat.IMAGE:
-            # xy_data = [raw_data[0]['roi'][0]['xData'][0], raw_data[0]['roi'][0]['yData'][0]]
+            # xy_data = [raw_dataraw_data['acquisition'][0]['roi'][0]['yData'][0]['roi'][0]['xData'][0],
+            # raw_dataraw_data['acquisition'][0]['roi'][0]['yData'][0]['roi'][0]['yData'][0]]
             with open('outputcsv.csv', 'w', newline = "") as csvfile:
                 w = csv.writer(csvfile)
                 fields = ['wavelength', 'intensity']
@@ -81,11 +91,12 @@ async def main():
             raise Exception('CCD not ready for acquisition')
     finally:
         await ccd.close()
-        logger.info('Waiting before closing Monochromator')
+        logger.info('Waiting before closing Monochromator...')
         await asyncio.sleep(1)
+        logger.info('Closing Monochromator...')
         await mono.close()
-
-    await device_manager.stop()
+        logger.info('Stopping device manager...')
+        await device_manager.stop()
 
     await plot_values(target_wavelength, x_data, y_data)
 

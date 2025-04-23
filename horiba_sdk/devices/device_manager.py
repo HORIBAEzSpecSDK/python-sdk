@@ -50,7 +50,8 @@ from horiba_sdk.communication import (
 from horiba_sdk.devices import AbstractDeviceManager
 from horiba_sdk.devices.ccd_discovery import ChargeCoupledDevicesDiscovery
 from horiba_sdk.devices.monochromator_discovery import MonochromatorsDiscovery
-from horiba_sdk.devices.single_devices import ChargeCoupledDevice, Monochromator
+from horiba_sdk.devices.single_devices import ChargeCoupledDevice, Monochromator, SpectrAcq3
+from horiba_sdk.devices.spectracq3_discovery import SpectrAcq3Discovery
 from horiba_sdk.icl_error import AbstractError, AbstractErrorDB, ICLErrorDB
 
 
@@ -95,6 +96,7 @@ class DeviceManager(AbstractDeviceManager):
         self._binary_messages: bool = enable_binary_messages
         self._charge_coupled_devices: list[ChargeCoupledDevice] = []
         self._monochromators: list[Monochromator] = []
+        self._spectracq3_devices: list[SpectrAcq3] = []
 
         error_list_path: Path = Path(str(importlib.resources.files('horiba_sdk.icl_error') / 'error_list.json'))
         self._icl_error_db: AbstractErrorDB = ICLErrorDB(error_list_path)
@@ -230,6 +232,12 @@ class DeviceManager(AbstractDeviceManager):
         await monochromators_discovery.execute(error_on_no_device)
         self._monochromators = monochromators_discovery.monochromators()
 
+        spectracq3_discovery: SpectrAcq3Discovery = SpectrAcq3Discovery(
+            self._icl_communicator, self._icl_error_db
+        )
+        await spectracq3_discovery.execute(error_on_no_device)
+        self._spectracq3_devices = spectracq3_discovery.spectracq3_devices()
+
     @property
     @override
     def communicator(self) -> AbstractCommunicator:
@@ -262,3 +270,13 @@ class DeviceManager(AbstractDeviceManager):
             List[ChargeCoupledDevice]: The detected CCDS.
         """
         return self._charge_coupled_devices
+
+    @property
+    def spectracq3_devices(self) -> list[SpectrAcq3]:
+        """
+        The detected SpectrAcq3 devices, should be called after :meth:`discover_devices`
+
+        Returns:
+            List[SpectrAcq3]: The detected SpectrAcq3 devices.
+        """
+        return self._spectracq3_devices

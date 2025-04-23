@@ -1,7 +1,6 @@
 import asyncio
 import os
 import random
-from contextlib import suppress
 
 import pytest
 from loguru import logger
@@ -50,10 +49,11 @@ async def test_ccd_functionality(event_loop, async_device_manager_instance):  # 
 
             acquisition_data_size = await ccd.get_acquisition_data_size()
             acquisition_data = await ccd.get_acquisition_data()
+            await ccd.acquisition_abort()
 
             assert acquisition_data_size > 0
-            assert acquisition_data[0]['roi'][0]['xOrigin'] == 0
-            assert acquisition_data[0]['roi'][0]['yOrigin'] == 0
+            assert acquisition_data['acquisition'][0]['roi'][0]['xOrigin'] == 0
+            assert acquisition_data['acquisition'][0]['roi'][0]['yOrigin'] == 0
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
@@ -231,15 +231,16 @@ async def test_ccd_roi(event_loop, async_device_manager_instance):  # noqa: ARG0
 
             acquisition_data_size = await ccd.get_acquisition_data_size()
             acquisition_data = await ccd.get_acquisition_data()
+            await ccd.acquisition_abort()
 
             # assert
             assert acquisition_data_size == 1000
-            assert acquisition_data[0]['roi'][0]['xOrigin'] == 0
-            assert acquisition_data[0]['roi'][0]['yOrigin'] == 0
-            assert acquisition_data[0]['roi'][0]['xSize'] == 1000
-            assert acquisition_data[0]['roi'][0]['ySize'] == 200
-            assert acquisition_data[0]['roi'][0]['xBinning'] == 1
-            assert acquisition_data[0]['roi'][0]['yBinning'] == 200
+            assert acquisition_data['acquisition'][0]['roi'][0]['xOrigin'] == 0
+            assert acquisition_data['acquisition'][0]['roi'][0]['yOrigin'] == 0
+            assert acquisition_data['acquisition'][0]['roi'][0]['xSize'] == 1000
+            assert acquisition_data['acquisition'][0]['roi'][0]['ySize'] == 200
+            assert acquisition_data['acquisition'][0]['roi'][0]['xBinning'] == 1
+            assert acquisition_data['acquisition'][0]['roi'][0]['yBinning'] == 200
 
 
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
@@ -375,27 +376,21 @@ async def test_ccd_signal_out(event_loop, async_device_manager_instance):  # noq
         assert actual_signal_output_before == expected_signal_output_before
         assert actual_signal_output_after == expected_signal_output_after
 
-
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
-async def test_ccd_acquisition_abort(event_loop, async_device_manager_instance):  # noqa: ARG001
-    # arrange
+async def test_ccd_acquisition_abort(async_device_manager_instance):  # noqa: ARG001
     async with async_device_manager_instance.charge_coupled_devices[0] as ccd:
-        # act
-        await ccd.set_exposure_time(10000)
+        await ccd.set_acquisition_count(1)
+        await ccd.set_timer_resolution(TimerResolution.MICROSECONDS)
+        ccd.set_exposure_time(10000)
 
         await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
         await ccd.set_region_of_interest()
 
         if await ccd.get_acquisition_ready():
             await ccd.acquisition_start(open_shutter=True)
-            await asyncio.sleep(0.2)  # Wait a short period for the acquisition to start
 
             acquisition_busy_before_abort = await ccd.get_acquisition_busy()
-            await asyncio.sleep(0.2)
-            # aborting throws an error at the moment, for whatever reason, but it works
-            with suppress(Exception):
-                await ccd.acquisition_abort()
-
+            await ccd.acquisition_abort()
             await asyncio.sleep(2)
             acquisition_busy_after_abort = await ccd.get_acquisition_busy()
 
@@ -421,9 +416,11 @@ async def test_ccd_range_mode_positions(event_loop, async_device_manager_instanc
         await mono.open()
         await wait_mono(mono)
 
+        await ccd.set_center_wavelength(mono.id(), 230.0)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
         await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
         await ccd.set_region_of_interest()
 
         center_wavelengths = await ccd.range_mode_center_wavelengths(mono.id(), start_wavelength, end_wavelength, 10)
+        await mono.close()
         assert center_wavelengths

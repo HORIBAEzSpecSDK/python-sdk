@@ -1,6 +1,6 @@
 import json
 from itertools import count
-from typing import Any, Dict, List, Optional, final
+from typing import Any, Dict, List, Optional, Union, final
 
 
 class Command:
@@ -43,7 +43,10 @@ class Response:
     """
 
     def __init__(
-        self, id: int, command: str, results: Optional[Dict[str, Any]] = None, errors: Optional[List[str]] = None
+        self,
+        id: int, command: str, 
+        results: Optional[Union[Dict[str, Any], Any]] = None, 
+        errors: Optional[List[str]] = None
     ):
         self.id = id
         self.command = command
