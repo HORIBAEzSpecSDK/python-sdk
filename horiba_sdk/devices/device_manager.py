@@ -102,9 +102,18 @@ class DeviceManager(AbstractDeviceManager):
         self._icl_error_db: AbstractErrorDB = ICLErrorDB(error_list_path)
 
     @override
-    async def start(self) -> None:
+    async def start(self, show_icl_output: bool = True) -> None:
+        """
+        Starts the DeviceManager, which includes starting the ICL software if configured to do so,
+        opening the communicator, and discovering devices.
+        Args:
+            show_icl_output: if True, the output of the ICL software is shown in the console.
+
+        Returns:
+
+        """
         if self._start_icl:
-            await self.start_icl()
+            await self.start_icl(show_icl_output=show_icl_output)
 
         await self._icl_communicator.open()
 
@@ -125,9 +134,11 @@ class DeviceManager(AbstractDeviceManager):
         if self._icl_communicator.opened():
             await self._icl_communicator.close()
 
-    async def start_icl(self) -> None:
+    async def start_icl(self, show_icl_output: bool = True) -> None:
         """
         Starts the ICL software and establishes communication.
+        Args:
+            show_icl_output (bool): If True, the output of the ICL software is shown in the console.
         """
         logger.info('Starting ICL software...')
         # try:
@@ -138,9 +149,17 @@ class DeviceManager(AbstractDeviceManager):
         icl_running = 'icl.exe' in (p.name() for p in psutil.process_iter())
         if not icl_running:
             logger.info('icl not running, starting it...')
-            # subprocess.Popen([r'C:\Program Files\HORIBA Scientific\SDK\icl.exe'])
-            self._icl_process = await asyncio.create_subprocess_exec(r'C:\Program Files\HORIBA Scientific\SDK\icl.exe')
+            if show_icl_output:
+                # subprocess.Popen([r'C:\Program Files\HORIBA Scientific\SDK\icl.exe'])
+                self._icl_process = await asyncio.create_subprocess_exec(r'C:\Program Files\HORIBA Scientific\SDK\icl.exe')
+            else:
+                self._icl_process = await asyncio.create_subprocess_exec(
+                    r'C:\Program Files\HORIBA Scientific\SDK\icl.exe',
+                    stdout=asyncio.subprocess.DEVNULL,  # Suppress standard output
+                    stderr=asyncio.subprocess.DEVNULL  # Suppress error output
+                )
             await asyncio.sleep(4)
+
 
         # except subprocess.CalledProcessError:
         #    logger.error('Failed to start ICL software.')

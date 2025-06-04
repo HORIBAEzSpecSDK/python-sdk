@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 from loguru import logger
 
@@ -8,7 +9,7 @@ from horiba_sdk.devices.device_manager import DeviceManager
 
 async def main():
     device_manager = DeviceManager(start_icl=True)
-    await device_manager.start()
+    await device_manager.start(False)
 
     if not device_manager.monochromators:
         logger.error('No monochromators found, exiting...')
@@ -34,9 +35,21 @@ async def main():
             await mono.move_to_target_wavelength(wavelength)
             while await mono.is_busy():
                 await asyncio.sleep(0.1)
+            end_timeout = time.time() + 10
+            while time.time() < end_timeout:
+                if not await spectracq3.is_busy():
+                    break
+                logger.info('Waiting for SpectrAcq3 to be ready...')
+                await asyncio.sleep(0.1)
             logger.info(f'Monochromator set to {wavelength}nm')
 
             await spectracq3.set_acq_set(1, 0, 1, 0)
+            while time.time() < end_timeout:
+                if not await spectracq3.is_busy():
+                    logger.info(f'SpectrAcq3 is busy:{await spectracq3.is_busy()} ')
+                    break
+                logger.info('Waiting for SpectrAcq3 to be ready...')
+                await asyncio.sleep(0.1)
             await spectracq3.acq_start(1)
             await asyncio.sleep(3)
             spectracq3_data = await spectracq3.get_available_data()
