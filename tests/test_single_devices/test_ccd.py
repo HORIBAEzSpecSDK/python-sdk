@@ -4,7 +4,6 @@
 # Look at /test/conftest.py for the definition of fake_icl_exe
 import unittest
 
-from horiba_sdk.core.clean_count_mode import CleanCountMode
 from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 
