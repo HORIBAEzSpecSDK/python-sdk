@@ -86,10 +86,10 @@ class Monochromator(AbstractDevice):
         """Slits available on the monochromator."""
 
         # TODO: clarify how the slits are called
-        A = 0
-        B = 1
-        C = 2
-        D = 3
+        A = 1
+        B = 2
+        C = 3
+        D = 4
 
     def __init__(self, device_id: int, communicator: AbstractCommunicator, error_db: AbstractErrorDB) -> None:
         super().__init__(device_id, communicator, error_db)
