@@ -77,9 +77,9 @@ class LinearSpectraStitch(SpectraStitch):
         overlap_start = max(x1_min, x2_min)
         overlap_end = min(x1_max, x2_max)
 
-        logger.debug(f"Spectrum 1 range: {x1_min} to {x1_max}")
-        logger.debug(f"Spectrum 2 range: {x2_min} to {x2_max}")
-        logger.debug(f"Overlap region: {overlap_start} to {overlap_end}")
+        logger.debug(f'Spectrum 1 range: {x1_min} to {x1_max}')
+        logger.debug(f'Spectrum 2 range: {x2_min} to {x2_max}')
+        logger.debug(f'Overlap region: {overlap_start} to {overlap_end}')
 
         if overlap_start >= overlap_end:
             logger.error(f'No overlap between spectra: [{x1_min}, {x1_max}] and [{x2_min}, {x2_max}]')

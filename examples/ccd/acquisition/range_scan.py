@@ -85,11 +85,11 @@ async def main():
 
             xy_data = await capture(ccd)
             # Add debug logging to check the data structure
-            logger.debug(f"Capture data structure: {xy_data}")
+            logger.debug(f'Capture data structure: {xy_data}')
             captures.append(xy_data)
 
         # Add debug logging before stitching
-        logger.debug(f"All captures before stitching: {captures}")
+        logger.debug(f'All captures before stitching: {captures}')
         stitch = LinearSpectraStitch(captures)
         spectrum = stitch.stitched_spectra()
         # pb
@@ -123,7 +123,7 @@ async def capture(ccd):
         # for AcquisitionFormat.SPECTRA:
         # xy_data = raw_data[0]['roi'][0]['xyData']
         # for AcquisitionFormat.IMAGE:
-        xy_data = [raw_data["acquisition"][0]['roi'][0]['xData'], raw_data["acquisition"][0]['roi'][0]['yData']]
+        xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'], raw_data['acquisition'][0]['roi'][0]['yData']]
         logger.info(xy_data)
 
     else:

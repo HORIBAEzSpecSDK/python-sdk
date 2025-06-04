@@ -82,7 +82,7 @@ async def main():
             # for AcquisitionFormat.IMAGE:
             # xy_data = [raw_dataraw_data['acquisition'][0]['roi'][0]['yData'][0]['roi'][0]['xData'][0],
             # raw_dataraw_data['acquisition'][0]['roi'][0]['yData'][0]['roi'][0]['yData'][0]]
-            with open('outputcsv.csv', 'w', newline = "") as csvfile:
+            with open('outputcsv.csv', 'w', newline='') as csvfile:
                 w = csv.writer(csvfile)
                 fields = ['wavelength', 'intensity']
                 w.writerow(fields)

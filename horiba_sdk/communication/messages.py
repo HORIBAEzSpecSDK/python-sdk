@@ -44,9 +44,10 @@ class Response:
 
     def __init__(
         self,
-        id: int, command: str, 
-        results: Optional[Union[Dict[str, Any], Any]] = None, 
-        errors: Optional[List[str]] = None
+        id: int,
+        command: str,
+        results: Optional[Union[Dict[str, Any], Any]] = None,
+        errors: Optional[List[str]] = None,
     ):
         self.id = id
         self.command = command
