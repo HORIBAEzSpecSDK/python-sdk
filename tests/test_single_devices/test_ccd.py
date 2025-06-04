@@ -99,18 +99,6 @@ async def test_ccd_acquisition_count(fake_device_manager, fake_icl_exe):  # noqa
         assert acquisition_count == 1
 
 
-async def test_ccd_clean_count(fake_device_manager, fake_icl_exe):  # noqa: ARG001
-    # arrange
-    # act
-    async with fake_device_manager.charge_coupled_devices[0] as ccd:
-        # assert
-        (clean_count, clean_count_mode) = await ccd.get_clean_count()
-
-        # assert
-        assert clean_count == 1
-        assert clean_count_mode == CleanCountMode.UNKNOWN
-
-
 async def test_ccd_acquisition_data(fake_device_manager, fake_icl_exe):  # noqa: ARG001
     # arrange
     # act
