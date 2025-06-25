@@ -1,7 +1,7 @@
 from typing import Any, List
 
 from loguru import logger
-from numpy import array, concatenate, dtype, ndarray
+from numpy import array, concatenate, dtype, ndarray, interp
 from overrides import override
 
 from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
@@ -49,42 +49,57 @@ class LabSpec6SpectraStitch(SpectraStitch):
         return self._stitched_spectrum
 
     def _stitch_spectra(self, spectrum1: List[List[float]], spectrum2: List[List[float]]) -> List[List[float]]:
+        # Grab x and y values from the spectra
         fx1, fy1 = spectrum1
         fx2, fy2 = spectrum2
 
+        # Convert to numpy arrays
         x1: ndarray[Any, dtype[Any]] = array(fx1)
         x2: ndarray[Any, dtype[Any]] = array(fx2)
         y1: ndarray[Any, dtype[Any]] = array(fy1)
         y2: ndarray[Any, dtype[Any]] = array(fy2)
 
-        overlap_start = max(x1[0], x2[0])
-        overlap_end = min(x1[-1], x2[-1])
+        # Sort spectra while maintaining x-y correspondence
+        sort1 = argsort(x1)
+        sort2 = argsort(x2)
 
-        if overlap_start >= overlap_end:
+        # Create sorted views of both arrays
+        x1_sorted = x1[sort1]
+        y1_sorted = y1[sort1]
+        x2_sorted = x2[sort2]
+        y2_sorted = y2[sort2]
+
+        # Raises exception if there is no overlap between the two spectra
+        if x1_sorted[-1] <= x2_sorted[0]:
             logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
             raise Exception('No overlapping region between spectra')
+        
+        # Define mask that will split the first spectrum into overlapping and non-overlapping regions
+        mask1 = (x1_sorted >= x2_sorted[0])
+        
+        # Apply mask to get overlapping region
+        x1_overlap = x1_sorted[mask1]
+        y1_overlap = y1_sorted[mask1]
 
-        mask1 = (x1 >= overlap_start) & (x1 <= overlap_end)
-        mask2 = (x2 >= overlap_start) & (x2 <= overlap_end)
+        # Linearly interpolate y2 values at the x1_overlap points
+        y2_interpolated = interp(x1_overlap, x2_sorted, y2_sorted)
 
-        x1_overlap = x1[mask1]
-        y1_overlap = y1[mask1]
+        # Find the largest x value in the first spectrum that is less than the smallest x value in the second spectrum
+        overlap_start = max(x1_sorted[~mask1])
 
-        x2_overlap = x2[mask2]
-        y2_overlap = y2[mask2]
+        # Find the smallest x value in the second spectrum that is greater than the largest x value in the first spectrum
+        mask2 = (x2_sorted >= x1_sorted[-1])
+        overlap_end = min(x2_sorted[mask2])
 
-        A = (x1_overlap - overlap_start) / (overlap_end - overlap_start)
-        B = (overlap_end - x2_overlap) / (overlap_end - overlap_start)
+        # Create new overlap region via a weighted average of the y1 and interpolated y2 values
+        y_stitched = (y1_overlap * (overlap_end - x1_overlap) + y2_interpolated * (x1_overlap - overlap_start)) / (overlap_end - overlap_start)
+ 
+        y_before = y1[~mask1]
 
-        y_stitched = (y1_overlap * A + y2_overlap * B) / (A + B)
+        x_after = x2_sorted[mask2]
+        y_after = y2_sorted[mask2]
 
-        x_before = x1[x1 < overlap_start]
-        y_before = y1[x1 < overlap_start]
-
-        x_after = x2[x2 > overlap_end]
-        y_after = y2[x2 > overlap_end]
-
-        x_stitched = concatenate([x_before, x1_overlap, x_after])
+        x_stitched = concatenate([x1_sorted, x_after])
         y_stitched_final = concatenate([y_before, y_stitched, y_after])
 
         return [x_stitched.tolist(), y_stitched_final.tolist()]
