@@ -2,7 +2,6 @@
 
 revision: **0.2**  
 date: **01/06/2025**
-ICL version: **2.0.0.179**
 
 This document describes the remote command and data API provided by the ICL.
 
@@ -3052,6 +3051,9 @@ Sets the number of acquisition measurements to be performed sequentially by the 
 
 Gets the number of cleans to be performed prior to measurement.
 
+_Note:_ Before using this command, the number of cleans should be set by using the [ccd_setCleanCount](#ccd_setcleancount) command.
+If the number of cleans has not been set, the _mode_ parameter may return an undefined value.
+
 **Command Parameters:**
 >| parameter  | description   |
 >|---|---|
@@ -3590,7 +3592,7 @@ _Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setro
 
 ### <a id="ccd_acquisitionabort"></a>ccd_acquisitionAbort
 
-Stops the current acquisition.
+Stops the current acquisition. Before starting another acquisition, it is recommended to restart the CCD, see [ccd_restart](#ccd_restart).
 
 **Command Parameters:**
 >| parameter  | description   |
@@ -4784,9 +4786,21 @@ Retrieve the acquired data that is available so far.
 <br>Ensure that you save the data to a local buffer or storage before reading to prevent data loss.
 
 **Command parameters:**
->| parameter  | description   |
->|---|---|
->|index| The index of the SpectrAcq3 device for which you want to restart the paused acquisition |
+| parameter  | description   |
+|------------|----------------|
+| index      | The index of the SpectrAcq3 device for which you want to restart the paused acquisition. |
+| channels   | *(Optional)* Array of strings. List of channels to read data from. |
+
+**channels parameter details**  
+- List of channels to read data from.  
+- If not provided, data for all **enabled** channels will be returned by default.  
+- If a channel is requested but not enabled, an error will be returned for that channel.
+- List of supported channels
+    - current
+    - voltage
+    - ppd
+    - photon
+- format: `channels: ["current", "voltage", "ppd"]`
 
 **Return Results:**
 
@@ -4881,6 +4895,50 @@ Retrieve the acquired data that is available so far.
             }
         ]
     }
+}
+```
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getAvailableData",
+    "parameters":{
+        "index": 0,
+        "channels": ["current", "voltage", "ppd"]
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+  "command": "saq3_getAvailableData",
+  "errors": [
+    "PPD channel is not enabled"
+  ],
+  "id": 1234,
+  "results": {
+    "data": [
+      {
+        "currentSignal": {
+          "unit": "uAmps",
+          "value": 0.15038341283798218
+        },
+        "elapsedTime": 0,
+        "eventMarker": false,
+        "overscaleCurrentChannel": false,
+        "overscaleVoltageChannel": false,
+        "pointNumber": 0,
+        "voltageSignal": {
+          "unit": "Volts",
+          "value": -0.05407479777932167
+        }
+      }
+    ]
+  }
 }
 ```
 

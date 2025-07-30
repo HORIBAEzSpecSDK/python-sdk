@@ -67,7 +67,7 @@ class DeviceManager(AbstractDeviceManager):
         icl_ip: str = '127.0.0.1',
         icl_port: str = '25010',
         enable_binary_messages: bool = True,
-        enable_logging: bool = False
+        enable_logging: bool = False,
     ):
         """
         Initializes the DeviceManager with the specified communicator class.
@@ -82,7 +82,7 @@ class DeviceManager(AbstractDeviceManager):
         # By default, logging is disabled for a library, so if desired it can be enabled
         root_name_space: str = __name__.split('.')[0]
         if enable_logging:
-            logger.info(f"Initializing logger for namespace: {root_name_space}")
+            logger.info(f'Initializing logger for namespace: {root_name_space}')
             logger.enable(root_name_space)
         else:
             logger.disable(root_name_space)
@@ -102,9 +102,18 @@ class DeviceManager(AbstractDeviceManager):
         self._icl_error_db: AbstractErrorDB = ICLErrorDB(error_list_path)
 
     @override
-    async def start(self) -> None:
+    async def start(self, show_icl_output: bool = True) -> None:
+        """
+        Starts the DeviceManager, which includes starting the ICL software if configured to do so,
+        opening the communicator, and discovering devices.
+        Args:
+            show_icl_output: if True, the output of the ICL software is shown in the console.
+
+        Returns:
+
+        """
         if self._start_icl:
-            await self.start_icl()
+            await self.start_icl(show_icl_output=show_icl_output)
 
         await self._icl_communicator.open()
 
@@ -125,9 +134,11 @@ class DeviceManager(AbstractDeviceManager):
         if self._icl_communicator.opened():
             await self._icl_communicator.close()
 
-    async def start_icl(self) -> None:
+    async def start_icl(self, show_icl_output: bool = True) -> None:
         """
         Starts the ICL software and establishes communication.
+        Args:
+            show_icl_output (bool): If True, the output of the ICL software is shown in the console.
         """
         logger.info('Starting ICL software...')
         # try:
@@ -138,8 +149,17 @@ class DeviceManager(AbstractDeviceManager):
         icl_running = 'icl.exe' in (p.name() for p in psutil.process_iter())
         if not icl_running:
             logger.info('icl not running, starting it...')
-            # subprocess.Popen([r'C:\Program Files\HORIBA Scientific\SDK\icl.exe'])
-            self._icl_process = await asyncio.create_subprocess_exec(r'C:\Program Files\HORIBA Scientific\SDK\icl.exe')
+            if show_icl_output:
+                # subprocess.Popen([r'C:\Program Files\HORIBA Scientific\SDK\icl.exe'])
+                self._icl_process = await asyncio.create_subprocess_exec(
+                    r'C:\Program Files\HORIBA Scientific\SDK\icl.exe'
+                )
+            else:
+                self._icl_process = await asyncio.create_subprocess_exec(
+                    r'C:\Program Files\HORIBA Scientific\SDK\icl.exe',
+                    stdout=asyncio.subprocess.DEVNULL,  # Suppress standard output
+                    stderr=asyncio.subprocess.DEVNULL,  # Suppress error output
+                )
             await asyncio.sleep(4)
 
         # except subprocess.CalledProcessError:
@@ -232,9 +252,7 @@ class DeviceManager(AbstractDeviceManager):
         await monochromators_discovery.execute(error_on_no_device)
         self._monochromators = monochromators_discovery.monochromators()
 
-        spectracq3_discovery: SpectrAcq3Discovery = SpectrAcq3Discovery(
-            self._icl_communicator, self._icl_error_db
-        )
+        spectracq3_discovery: SpectrAcq3Discovery = SpectrAcq3Discovery(self._icl_communicator, self._icl_error_db)
         await spectracq3_discovery.execute(error_on_no_device)
         self._spectracq3_devices = spectracq3_discovery.spectracq3_devices()
 

@@ -73,11 +73,11 @@ async def main():
             data_shutter_open = await ccd.get_acquisition_data()
             logger.info(f'Data with open shutter: {data_shutter_open}')
 
-        data_shutter_open_selected = data_shutter_open["acquisition"][0]['roi'][0]['yData'][0]
-        data_shutter_closed_selected = data_shutter_closed["acquisition"][0]['roi'][0]['yData'][0]
+        data_shutter_open_selected = data_shutter_open['acquisition'][0]['roi'][0]['yData'][0]
+        data_shutter_closed_selected = data_shutter_closed['acquisition'][0]['roi'][0]['yData'][0]
         data_without_noise = await subtract_dark_count(data_shutter_open_selected, data_shutter_closed_selected)
         data_subtracted = data_shutter_open
-        data_subtracted["acquisition"][0]['roi'][0]['yData'][0] = data_without_noise
+        data_subtracted['acquisition'][0]['roi'][0]['yData'][0] = data_without_noise
 
         logger.info(f'Data without noise: {data_subtracted}')
 

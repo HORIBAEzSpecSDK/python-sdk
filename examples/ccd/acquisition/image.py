@@ -57,10 +57,10 @@ async def main():
 
             raw_data = await ccd.get_acquisition_data()
 
-        # for AcquisitionFormat.SPECTRA
-        # xy_data = raw_data[0]['roi'][0]['xyData']
+            # for AcquisitionFormat.SPECTRA
+            # xy_data = raw_data[0]['roi'][0]['xyData']
 
-        # for AcquisitionFormat.IMAGE
+            # for AcquisitionFormat.IMAGE
             xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'][0], raw_data['acquisition'][0]['roi'][0]['yData']]
 
             await plot_image(xy_data)

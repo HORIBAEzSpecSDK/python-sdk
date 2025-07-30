@@ -376,6 +376,7 @@ async def test_ccd_signal_out(event_loop, async_device_manager_instance):  # noq
         assert actual_signal_output_before == expected_signal_output_before
         assert actual_signal_output_after == expected_signal_output_after
 
+
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 async def test_ccd_acquisition_abort(async_device_manager_instance):  # noqa: ARG001
     async with async_device_manager_instance.charge_coupled_devices[0] as ccd:

@@ -2,6 +2,7 @@ import asyncio
 
 from loguru import logger
 
+from horiba_sdk.core.clean_count_mode import CleanCountMode
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.devices.device_manager import DeviceManager
 
@@ -21,7 +22,11 @@ async def main():
     try:
         await ccd.set_acquisition_count(1)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
+        no_of_acquisitions = 5
+        await ccd.set_acquisition_count(no_of_acquisitions)
         logger.info(await ccd.get_acquisition_count())
+        clean_cont_mode = CleanCountMode.EACH
+        await ccd.set_clean_count(count=2, mode=clean_cont_mode)
         logger.info(await ccd.get_clean_count())
         logger.info(await ccd.get_timer_resolution())
         logger.info(await ccd.get_gain_token())
@@ -29,6 +34,7 @@ async def main():
         logger.info(await ccd.get_exposure_time())
         exposure_time = 5
         await ccd.set_exposure_time(exposure_time)
+
         logger.info(await ccd.get_exposure_time())
         logger.info(await ccd.get_chip_temperature())
         await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters

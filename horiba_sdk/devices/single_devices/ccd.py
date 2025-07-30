@@ -341,7 +341,7 @@ class ChargeCoupledDevice(AbstractDevice):
     async def set_clean_count(self, count: int, mode: CleanCountMode) -> None:
         """Sets the clean count mode of the CCD and the according mode
         Args:
-            count (int): The number of acquisitions to be performed.
+            count (int): Integer. Number of cleans.
             mode (CleanCountMode): The mode of the clean count
         """
         await super()._execute_command('ccd_setCleanCount', {'index': self._id, 'count': count, 'mode': mode.value})
