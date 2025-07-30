@@ -1,7 +1,7 @@
 from typing import Any, List
 
 from loguru import logger
-from numpy import array, concatenate, dtype, ndarray, interp
+from numpy import argsort, array, concatenate, dtype, ndarray, interp, argmax, argmin
 from overrides import override
 
 from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
@@ -49,9 +49,11 @@ class LabSpec6SpectraStitch(SpectraStitch):
         return self._stitched_spectrum
 
     def _stitch_spectra(self, spectrum1: List[List[float]], spectrum2: List[List[float]]) -> List[List[float]]:
-        # Grab x and y values from the spectra
-        fx1, fy1 = spectrum1
-        fx2, fy2 = spectrum2
+        # This stitching method only works with spectra, not images. If full CCD data is passed, only the first row is used.
+        fx1 = spectrum1[0]
+        fy1 = spectrum1[1][0]
+        fx2 = spectrum2[0]
+        fy2 = spectrum2[1][0]
 
         # Convert to numpy arrays
         x1: ndarray[Any, dtype[Any]] = array(fx1)
@@ -69,37 +71,31 @@ class LabSpec6SpectraStitch(SpectraStitch):
         x2_sorted = x2[sort2]
         y2_sorted = y2[sort2]
 
-        # Raises exception if there is no overlap between the two spectra
-        if x1_sorted[-1] <= x2_sorted[0]:
+        # Concatenates the spectra if there is no overlap
+        if x1_sorted[-1] < x2_sorted[0]:
             logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
-            raise Exception('No overlapping region between spectra')
+            return [concatenate([x1_sorted, x2_sorted]).tolist(), [concatenate([y1_sorted, y2_sorted]).tolist()]]
         
-        # Define mask that will split the first spectrum into overlapping and non-overlapping regions
-        mask1 = (x1_sorted >= x2_sorted[0])
+        # Finds the index of the largest element in the first spectrum that is less than the first element in the second spectrum. Defines this as the start of the overlapping region.
+        overlap_start_idx = argmax(x1_sorted >= x2_sorted[0]) - 1
+        overlap_start = x1_sorted[overlap_start_idx]
+
+        # Finds the index of the smallest element in the second spectrum that is greater than the last element in the first spectrum. Defines this as the end of the overlapping region.
+        overlap_end_idx = argmax(x2_sorted > x1_sorted[-1])
+        overlap_end = x2_sorted[overlap_end_idx]
+
+        # Weighted average of the overlapping region
+        y_overlap_weighted_average = []
+        for i in range(overlap_start_idx + 1, len(x1_sorted)):
+            idx = argmin(abs(x2_sorted - x1_sorted[i]))
+            y_overlap_weighted_average.append((y1_sorted[i]*(overlap_end-x1_sorted[i])+y2_sorted[idx]*(x2_sorted[idx]-overlap_start)) / (overlap_end - overlap_start))
         
-        # Apply mask to get overlapping region
-        x1_overlap = x1_sorted[mask1]
-        y1_overlap = y1_sorted[mask1]
+        x2_after = x2_sorted[overlap_end_idx:]
+        y1_before = y1_sorted[:overlap_start_idx+1]
+        y2_after = y2_sorted[overlap_end_idx:]
 
-        # Linearly interpolate y2 values at the x1_overlap points
-        y2_interpolated = interp(x1_overlap, x2_sorted, y2_sorted)
+        # Combine non-overlapping and overlapping regions
+        x_combined = concatenate([x1_sorted, x2_after])
+        y_combined = concatenate([y1_before, y_overlap_weighted_average, y2_after])
 
-        # Find the largest x value in the first spectrum that is less than the smallest x value in the second spectrum
-        overlap_start = max(x1_sorted[~mask1])
-
-        # Find the smallest x value in the second spectrum that is greater than the largest x value in the first spectrum
-        mask2 = (x2_sorted >= x1_sorted[-1])
-        overlap_end = min(x2_sorted[mask2])
-
-        # Create new overlap region via a weighted average of the y1 and interpolated y2 values
-        y_stitched = (y1_overlap * (overlap_end - x1_overlap) + y2_interpolated * (x1_overlap - overlap_start)) / (overlap_end - overlap_start)
- 
-        y_before = y1[~mask1]
-
-        x_after = x2_sorted[mask2]
-        y_after = y2_sorted[mask2]
-
-        x_stitched = concatenate([x1_sorted, x_after])
-        y_stitched_final = concatenate([y_before, y_stitched, y_after])
-
-        return [x_stitched.tolist(), y_stitched_final.tolist()]
+        return [x_combined.tolist(), [y_combined.tolist()]]
