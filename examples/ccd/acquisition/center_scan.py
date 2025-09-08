@@ -63,7 +63,7 @@ async def main():
         await ccd.set_gain(0)  # High Light
         await ccd.set_speed(2)  # 1 MHz Ultra
         await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
-        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
         await ccd.set_region_of_interest(
             1, 0, 0, chip_x, chip_y, 1, chip_y
         )  # Set default ROI, if you want a custom ROI, pass the parameters
@@ -79,10 +79,10 @@ async def main():
             logger.info(f'Acquired data: {raw_data}')
             x_data = raw_data['acquisition'][0]['roi'][0]['xData']
             y_data = raw_data['acquisition'][0]['roi'][0]['yData']
-            # for AcquisitionFormat.IMAGE:
+            # for image
             # xy_data = [raw_dataraw_data['acquisition'][0]['roi'][0]['yData'][0]['roi'][0]['xData'][0],
             # raw_dataraw_data['acquisition'][0]['roi'][0]['yData'][0]['roi'][0]['yData'][0]]
-            with open('outputcsv.csv', 'w', newline = "") as csvfile:
+            with open('outputcsv.csv', 'w', newline='') as csvfile:
                 w = csv.writer(csvfile)
                 fields = ['wavelength', 'intensity']
                 w.writerow(fields)

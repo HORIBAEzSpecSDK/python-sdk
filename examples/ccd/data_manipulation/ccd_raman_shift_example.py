@@ -10,8 +10,8 @@ from horiba_sdk.devices.single_devices import Monochromator
 
 
 async def main():
-    excitation_wavelength = float(input("Enter the excitation wavelength (float value): "))
-    acquisition_format = AcquisitionFormat.SPECTRA
+    excitation_wavelength = float(input('Enter the excitation wavelength (float value): '))
+    acquisition_format = AcquisitionFormat.SPECTRA_IMAGE
     device_manager = DeviceManager(start_icl=True)
     await device_manager.start()
 
@@ -39,7 +39,7 @@ async def main():
             await mono.set_turret_grating(Monochromator.Grating.SECOND)
             await wait_for_mono(mono)
 
-        target_wavelength = float(input("Enter the target wavelength (float value): "))
+        target_wavelength = float(input('Enter the target wavelength (float value): '))
         await mono.move_to_target_wavelength(target_wavelength)
         logger.info(f'Moving to target wavelength {target_wavelength}...')
         await wait_for_mono(mono)
@@ -78,10 +78,10 @@ async def main():
             data_wavelength = await ccd.get_acquisition_data()
             logger.info(f'Data with wavelength: {data_wavelength}')
 
-            wavelengths = data_wavelength["acquisition"][0]['roi'][0]['xData']
+            wavelengths = data_wavelength['acquisition'][0]['roi'][0]['xData']
             raman_shift = await ccd.raman_convert(wavelengths, excitation_wavelength)
             data_raman_shift = data_wavelength
-            data_raman_shift["acquisition"][0]['roi'][0]['xData'][0] = raman_shift
+            data_raman_shift['acquisition'][0]['roi'][0]['xData'][0] = raman_shift
 
             logger.info(f'Data with raman shift: {data_raman_shift}')
 
