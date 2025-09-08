@@ -67,7 +67,7 @@ class DeviceManager(AbstractDeviceManager):
         icl_ip: str = '127.0.0.1',
         icl_port: str = '25010',
         enable_binary_messages: bool = True,
-        enable_logging: bool = False
+        enable_logging: bool = False,
     ):
         """
         Initializes the DeviceManager with the specified communicator class.
@@ -82,7 +82,7 @@ class DeviceManager(AbstractDeviceManager):
         # By default, logging is disabled for a library, so if desired it can be enabled
         root_name_space: str = __name__.split('.')[0]
         if enable_logging:
-            logger.info(f"Initializing logger for namespace: {root_name_space}")
+            logger.info(f'Initializing logger for namespace: {root_name_space}')
             logger.enable(root_name_space)
         else:
             logger.disable(root_name_space)
@@ -232,9 +232,7 @@ class DeviceManager(AbstractDeviceManager):
         await monochromators_discovery.execute(error_on_no_device)
         self._monochromators = monochromators_discovery.monochromators()
 
-        spectracq3_discovery: SpectrAcq3Discovery = SpectrAcq3Discovery(
-            self._icl_communicator, self._icl_error_db
-        )
+        spectracq3_discovery: SpectrAcq3Discovery = SpectrAcq3Discovery(self._icl_communicator, self._icl_error_db)
         await spectracq3_discovery.execute(error_on_no_device)
         self._spectracq3_devices = spectracq3_discovery.spectracq3_devices()
 

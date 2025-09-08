@@ -41,7 +41,7 @@ async def main():
             await asyncio.sleep(3)
             spectracq3_data = await spectracq3.get_available_data()
             logger.info(f'Acquired data at {wavelength}nm: {spectracq3_data}')
-            spectracq3_data[0]["wavelength"] = wavelength
+            spectracq3_data[0]['wavelength'] = wavelength
             data.append(spectracq3_data[0])
         file_name = 'acquisition_data_' + str(wavelengths[0]) + 'nm_' + str(wavelengths[-1]) + 'nm.csv'
         save_spectracq3_data_to_csv(data, file_name)

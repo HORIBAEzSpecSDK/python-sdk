@@ -19,11 +19,21 @@ def save_acquisition_data_to_csv(json_data, csv_filename):
 
 
 def save_spectracq3_data_to_csv(json_data: list[dict], csv_filename: str):
-
     headers = [
-        'wavelength', 'elapsedTime', 'currentSignal_value', 'currentSignal_unit', 'pmtSignal_value', 'pmtSignal_unit',
-        'ppdSignal_value', 'ppdSignal_unit', 'voltageSignal_value', 'voltageSignal_unit',
-        'eventMarker', 'overscaleCurrentChannel', 'overscaleVoltageChannel', 'pointNumber'
+        'wavelength',
+        'elapsedTime',
+        'currentSignal_value',
+        'currentSignal_unit',
+        'pmtSignal_value',
+        'pmtSignal_unit',
+        'ppdSignal_value',
+        'ppdSignal_unit',
+        'voltageSignal_value',
+        'voltageSignal_unit',
+        'eventMarker',
+        'overscaleCurrentChannel',
+        'overscaleVoltageChannel',
+        'pointNumber',
     ]
 
     # Write to CSV file
@@ -35,21 +45,25 @@ def save_spectracq3_data_to_csv(json_data: list[dict], csv_filename: str):
             row = [
                 data['wavelength'],
                 data['elapsedTime'],
-                data['currentSignal']['value'], data['currentSignal']['unit'],
-                data['pmtSignal']['value'], data['pmtSignal']['unit'],
-                data['ppdSignal']['value'], data['ppdSignal']['unit'],
-                data['voltageSignal']['value'], data['voltageSignal']['unit'],
+                data['currentSignal']['value'],
+                data['currentSignal']['unit'],
+                data['pmtSignal']['value'],
+                data['pmtSignal']['unit'],
+                data['ppdSignal']['value'],
+                data['ppdSignal']['unit'],
+                data['voltageSignal']['value'],
+                data['voltageSignal']['unit'],
                 data['eventMarker'],
                 data['overscaleCurrentChannel'],
                 data['overscaleVoltageChannel'],
-                data['pointNumber']
+                data['pointNumber'],
             ]
             writer.writerow(row)
 
 
 if __name__ == '__main__':
     # Example usage
-    json_data = '''{
+    json_data = """{
         "acquisition": [{
             "acqIndex": 1,
             "roi": [{
@@ -65,6 +79,6 @@ if __name__ == '__main__':
             }]
         }],
         "timestamp": "2025.03.24 10:04:51.838"
-    }'''
+    }"""
 
     save_acquisition_data_to_csv(json_data, 'acquisition_data.csv')

@@ -80,5 +80,5 @@ if __name__ == '__main__':
     # Use which logger level you need
     # logger.add(sys.stdout, level='TRACE')
     # logger.add(sys.stderr, level="DEBUG")
-    logger.add(sys.stderr, level="INFO")
+    logger.add(sys.stderr, level='INFO')
     asyncio.run(main())

@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 from loguru import logger
 from numpy import argsort, array, concatenate, dtype, interp, ndarray
@@ -10,7 +10,7 @@ from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
 class LinearSpectraStitch(SpectraStitch):
     """Stitches a list of spectra using a linear model"""
 
-    def __init__(self, spectra_list: List[List[List[float]]]) -> None:
+    def __init__(self, spectra_list: list[list[list[float]]]) -> None:
         """Constructs a linear stitch of spectra.
 
         .. warning:: The spectra in the list must overlap
@@ -24,7 +24,7 @@ class LinearSpectraStitch(SpectraStitch):
         for i in range(1, len(spectra_list)):
             stitched_spectrum = self._stitch_spectra(stitched_spectrum, spectra_list[i])
 
-        self._stitched_spectrum: List[List[float]] = stitched_spectrum
+        self._stitched_spectrum: list[list[float]] = stitched_spectrum
 
     @override
     def stitch_with(self, other_stitch: SpectraStitch) -> SpectraStitch:
@@ -48,7 +48,7 @@ class LinearSpectraStitch(SpectraStitch):
         """
         return self._stitched_spectrum
 
-    def _stitch_spectra(self, spectrum1: List[List[float]], spectrum2: List[List[float]]) -> List[List[float]]:
+    def _stitch_spectra(self, spectrum1: list[list[float]], spectrum2: list[list[float]]) -> list[list[float]]:
         fx1 = spectrum1[0]
         fy1 = spectrum1[1][0]
         fx2 = spectrum2[0]
@@ -77,9 +77,9 @@ class LinearSpectraStitch(SpectraStitch):
         overlap_start = max(x1_min, x2_min)
         overlap_end = min(x1_max, x2_max)
 
-        logger.debug(f"Spectrum 1 range: {x1_min} to {x1_max}")
-        logger.debug(f"Spectrum 2 range: {x2_min} to {x2_max}")
-        logger.debug(f"Overlap region: {overlap_start} to {overlap_end}")
+        logger.debug(f'Spectrum 1 range: {x1_min} to {x1_max}')
+        logger.debug(f'Spectrum 2 range: {x2_min} to {x2_max}')
+        logger.debug(f'Overlap region: {overlap_start} to {overlap_end}')
 
         if overlap_start >= overlap_end:
             logger.error(f'No overlap between spectra: [{x1_min}, {x1_max}] and [{x2_min}, {x2_max}]')
