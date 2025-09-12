@@ -2,7 +2,6 @@
 
 revision: **0.2**  
 date: **01/06/2025**
-ICL version: **2.0.0.179**
 
 This document describes the remote command and data API provided by the ICL.
 
@@ -1251,13 +1250,12 @@ Returns the position of the specified slit in millimeters. The location id of ea
 ]
 ```
 
-_Note:_ The "locationId" parameter found in the mono configuration is 1-based. However, the mono_getSlitPositionInMM command uses a 0-based "locationId".
 
 **Command parameters:**
 >| parameter  | description   |
 >|---|---|
 >| index | Integer. Used to identify which mono to control. See [mono_list](#mono_list) command|
->| locationId | Integer. Slit location (zero-based) |
+>| locationId | Integer. Slit locationId from mono config |
 
 **Response results:**
 >| results | description |
@@ -1272,7 +1270,7 @@ _Note:_ The "locationId" parameter found in the mono configuration is 1-based. H
     "command": "mono_getSlitPositionInMM",
     "parameters":{
         "index": 0,
-        "locationId": 3
+        "locationId": 4
     }
 }
 ```
@@ -1317,13 +1315,12 @@ Moves the specified slit to the position in millimeters. The location id of each
 ]
 ```
 
-_Note:_ The "locationId" parameter found in the mono configuration is 1-based. However, the mono_moveSlitMM command uses a 0-based "locationId".
 
 **Command parameters:**
 >| parameter  | description   |
 >|---|---|
 >| index | Integer. Used to identify which mono to control. See [mono_list](#mono_list) command|
->| locationId | Integer. Slit location (zero-based) |
+>| locationId | Integer. Slit locationId from mono config |
 >| position | Float. Position in millimeters |
 
 **Response results:**
@@ -1339,7 +1336,7 @@ _Note:_ The "locationId" parameter found in the mono configuration is 1-based. H
     "command": "mono_moveSlitMM",
     "parameters":{
         "index": 0,
-        "locationId": 1,
+        "locationId": 2,
         "position": 1.5
     }
 }
@@ -2774,9 +2771,10 @@ Sets the acquisition format and the number of ROIs (Regions of Interest) or area
 >|---|---|
 >| index | Integer. Used to identify which CCD to target. See [ccd_list](#ccd_list) command|
 >| numberOfRois | Integer. Number of ROIs (Regions of Interest / areas)
->| format | Integer. The acquisition format. <br> 0 = Spectra <br> 1 = Image <br> 2 = Crop\* <br> 3 = Fast Kinetics\*
+>| format | Integer. The acquisition format. <br> 1 = Image/Spectra* (ROI dependant) <br> 2 = Crop\* (Only 1 ROI may be defined per acquisition when using this format)<br> 3 = Fast Kinetics\* (MultiAcq is not supported when using this format)
 
-_\* Note:_ The Crop (2) and Fast Kinetics (3) acquisition formats are not supported by every CCD.
+_\* Note 1:_ To use the Spectra acquisition format, set yBin = ySize when defining the ROI. See [ccd_setRoi](#ccd_setroi) <br>
+_\* Note 2:_ The Crop and Fast Kinetics acquisition formats are not supported by every CCD.
 
 **Return Results:**
 >| results | description |
@@ -3051,6 +3049,9 @@ Sets the number of acquisition measurements to be performed sequentially by the 
 ### <a id="ccd_getcleancount"></a>ccd_getCleanCount
 
 Gets the number of cleans to be performed prior to measurement.
+
+_Note:_ Before using this command, the number of cleans should be set by using the [ccd_setCleanCount](#ccd_setcleancount) command.
+If the number of cleans has not been set, the _mode_ parameter may return an undefined value.
 
 **Command Parameters:**
 >| parameter  | description   |
@@ -3590,7 +3591,7 @@ _Note:_ To specify the acquisition parameters please see [ccd_setROI](#ccd_setro
 
 ### <a id="ccd_acquisitionabort"></a>ccd_acquisitionAbort
 
-Stops the current acquisition.
+Stops the current acquisition. Before starting another acquisition, it is recommended to restart the CCD, see [ccd_restart](#ccd_restart).
 
 **Command Parameters:**
 >| parameter  | description   |
@@ -4784,9 +4785,21 @@ Retrieve the acquired data that is available so far.
 <br>Ensure that you save the data to a local buffer or storage before reading to prevent data loss.
 
 **Command parameters:**
->| parameter  | description   |
->|---|---|
->|index| The index of the SpectrAcq3 device for which you want to restart the paused acquisition |
+| parameter  | description   |
+|------------|----------------|
+| index      | The index of the SpectrAcq3 device for which you want to restart the paused acquisition. |
+| channels   | *(Optional)* Array of strings. List of channels to read data from. |
+
+**channels parameter details**  
+- List of channels to read data from.  
+- If not provided, data for all **enabled** channels will be returned by default.  
+- If a channel is requested but not enabled, an error will be returned for that channel.
+- List of supported channels
+    - current
+    - voltage
+    - ppd
+    - photon
+- format: `channels: ["current", "voltage", "ppd"]`
 
 **Return Results:**
 
@@ -4881,6 +4894,50 @@ Retrieve the acquired data that is available so far.
             }
         ]
     }
+}
+```
+
+**Example command:**
+
+```json
+{
+    "id": 1234,
+    "command": "saq3_getAvailableData",
+    "parameters":{
+        "index": 0,
+        "channels": ["current", "voltage", "ppd"]
+    }
+}
+```
+
+**Example response:**
+
+```json
+{
+  "command": "saq3_getAvailableData",
+  "errors": [
+    "PPD channel is not enabled"
+  ],
+  "id": 1234,
+  "results": {
+    "data": [
+      {
+        "currentSignal": {
+          "unit": "uAmps",
+          "value": 0.15038341283798218
+        },
+        "elapsedTime": 0,
+        "eventMarker": false,
+        "overscaleCurrentChannel": false,
+        "overscaleVoltageChannel": false,
+        "pointNumber": 0,
+        "voltageSignal": {
+          "unit": "Volts",
+          "value": -0.05407479777932167
+        }
+      }
+    ]
+  }
 }
 ```
 
@@ -5366,13 +5423,11 @@ Moves the specified slit to the position in steps. The location id of each confi
 ]
 ```
 
-_Note:_ The "locationId" parameter found in the mono configuration is 1-based. However, the mono_moveSlit command uses a 0-based "locationId".
-
 **Command parameters:**
 >| parameter  | description   |
 >|---|---|
 >| index | Integer. Used to identify which mono to control. See _mono_list_ command|
->| locationId | Integer. Slit location (zero-based) |
+>| locationId | Integer. Slit locationId from mono config |
 >| position | Integer. Position in steps |
 
 **Response results:**
@@ -5388,7 +5443,7 @@ _Note:_ The "locationId" parameter found in the mono configuration is 1-based. H
     "command": "mono_moveSlit",
     "parameters":{
         "index": 0,
-        "locationId": 1,
+        "locationId": 2,
         "position": 250
     }
 }
@@ -5432,13 +5487,12 @@ Returns the position of the specified slit in steps. The location id of each con
 ]
 ```
 
-_Note:_ The "locationId" parameter found in the mono configuration is 1-based. However, the mono_getSlitStepPosition command uses a 0-based "locationId".
 
 **Command parameters:**
 >| parameter  | description   |
 >|---|---|
 >| index | Integer. Used to identify which mono to control. See _mono_list_ command|
->| locationId | Integer. Slit location (zero-based) |
+>| locationId | Integer. Slit locationId from mono config |
 
 **Response results:**
 >| results | description |
@@ -5453,7 +5507,7 @@ _Note:_ The "locationId" parameter found in the mono configuration is 1-based. H
     "command": "mono_getSlitStepPosition",
     "parameters":{
         "index": 0,
-        "locationId": 3
+        "locationId": 4
     }
 }
 ```

@@ -42,7 +42,7 @@ async def main():
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
         await ccd.set_timer_resolution(TimerResolution.MICROSECONDS)
         await ccd.set_exposure_time(1)
-        await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
         await ccd.set_gain(0)  # High Light
         await ccd.set_speed(2)  # 1 MHz Ultra
 
@@ -57,10 +57,10 @@ async def main():
 
             raw_data = await ccd.get_acquisition_data()
 
-        # for AcquisitionFormat.SPECTRA
-        # xy_data = raw_data[0]['roi'][0]['xyData']
+            # for spectra
+            # xy_data = raw_data[0]['roi'][0]['xyData']
 
-        # for AcquisitionFormat.IMAGE
+            # for image
             xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'][0], raw_data['acquisition'][0]['roi'][0]['yData']]
 
             await plot_image(xy_data)

@@ -34,7 +34,7 @@ async def test_ccd_functionality(event_loop, async_device_manager_instance):  # 
 
         _ignored_speed = await ccd.get_speed_token()
 
-        await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
         await ccd.set_region_of_interest()
 
         if await ccd.get_acquisition_ready():
@@ -216,7 +216,7 @@ async def test_ccd_roi(event_loop, async_device_manager_instance):  # noqa: ARG0
         await asyncio.sleep(10)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
         await ccd.set_exposure_time(100)
-        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
         # act
         await ccd.set_region_of_interest(1, 0, 0, 1000, 200, 1, 200)
         if await ccd.get_acquisition_ready():
@@ -376,6 +376,7 @@ async def test_ccd_signal_out(event_loop, async_device_manager_instance):  # noq
         assert actual_signal_output_before == expected_signal_output_before
         assert actual_signal_output_after == expected_signal_output_after
 
+
 @pytest.mark.skipif(os.environ.get('HAS_HARDWARE') != 'true', reason='Hardware tests only run locally')
 async def test_ccd_acquisition_abort(async_device_manager_instance):  # noqa: ARG001
     async with async_device_manager_instance.charge_coupled_devices[0] as ccd:
@@ -383,7 +384,7 @@ async def test_ccd_acquisition_abort(async_device_manager_instance):  # noqa: AR
         await ccd.set_timer_resolution(TimerResolution.MICROSECONDS)
         ccd.set_exposure_time(10000)
 
-        await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
         await ccd.set_region_of_interest()
 
         if await ccd.get_acquisition_ready():
@@ -418,7 +419,7 @@ async def test_ccd_range_mode_positions(event_loop, async_device_manager_instanc
 
         await ccd.set_center_wavelength(mono.id(), 230.0)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
-        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA)
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
         await ccd.set_region_of_interest()
 
         center_wavelengths = await ccd.range_mode_center_wavelengths(mono.id(), start_wavelength, end_wavelength, 10)

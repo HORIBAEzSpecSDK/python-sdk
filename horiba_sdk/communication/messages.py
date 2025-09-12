@@ -1,6 +1,6 @@
 import json
 from itertools import count
-from typing import Any, Dict, List, Optional, Union, final
+from typing import Any, Optional, Union, final
 
 
 class Command:
@@ -21,7 +21,7 @@ class Command:
 
     _id_counter = count(start=1)  # Starts counting from 1
 
-    def __init__(self, command: str, parameters: Dict[str, Any]):
+    def __init__(self, command: str, parameters: dict[str, Any]):
         self.id = next(self._id_counter)  # Automatically assigns the next unique ID
         self.command = command
         self.parameters = parameters
@@ -44,9 +44,10 @@ class Response:
 
     def __init__(
         self,
-        id: int, command: str, 
-        results: Optional[Union[Dict[str, Any], Any]] = None, 
-        errors: Optional[List[str]] = None
+        id: int,
+        command: str,
+        results: Optional[Union[dict[str, Any], Any]] = None,
+        errors: Optional[list[str]] = None,
     ):
         self.id = id
         self.command = command

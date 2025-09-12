@@ -42,7 +42,6 @@ async def main():
             logger.info(f'Monochromator set to {wavelength}nm')
 
             if not await spectracq3.is_busy():
-
                 await spectracq3.acq_start(1)
                 await asyncio.sleep(3)
                 data = await spectracq3.get_available_data()

@@ -54,7 +54,7 @@ async def main():
 
         await ccd.set_center_wavelength(mono.id(), wavelength)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
-        await ccd.set_acquisition_format(1, AcquisitionFormat.IMAGE)
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
 
         ##pb
         ccd_configuration = await ccd.get_configuration()
@@ -85,11 +85,11 @@ async def main():
 
             xy_data = await capture(ccd)
             # Add debug logging to check the data structure
-            logger.debug(f"Capture data structure: {xy_data}")
+            logger.debug(f'Capture data structure: {xy_data}')
             captures.append(xy_data)
 
         # Add debug logging before stitching
-        logger.debug(f"All captures before stitching: {captures}")
+        logger.debug(f'All captures before stitching: {captures}')
         stitch = LinearSpectraStitch(captures)
         spectrum = stitch.stitched_spectra()
         # pb
@@ -120,10 +120,10 @@ async def capture(ccd):
 
         raw_data = await ccd.get_acquisition_data()
         logger.info(raw_data)
-        # for AcquisitionFormat.SPECTRA:
+        # for spectra format
         # xy_data = raw_data[0]['roi'][0]['xyData']
-        # for AcquisitionFormat.IMAGE:
-        xy_data = [raw_data["acquisition"][0]['roi'][0]['xData'], raw_data["acquisition"][0]['roi'][0]['yData']]
+        # for image format
+        xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'], raw_data['acquisition'][0]['roi'][0]['yData']]
         logger.info(xy_data)
 
     else:
@@ -150,7 +150,7 @@ async def plot_values(start_wavelength, end_wavelength, xy_data):
     # pb
     y_values = xy_data[1]
 
-    # for AcquisitionFormat.IMAGE:
+    # for image format
     # x_values = xy_data[0]
     # y_values = xy_data[1]
     # Plotting the data

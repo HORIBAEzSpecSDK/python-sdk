@@ -44,8 +44,7 @@ async def main():
         await device_manager.stop()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # configure the log level from the console to show severity level info and above
-    logger.configure(handlers=[{"sink": sys.stdout, "level": "INFO"}])
+    logger.configure(handlers=[{'sink': sys.stdout, 'level': 'INFO'}])
     asyncio.run(main())
-
