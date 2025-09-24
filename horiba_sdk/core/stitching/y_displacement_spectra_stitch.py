@@ -10,7 +10,7 @@ from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
 class YDisplacementSpectraStitch(SpectraStitch):
     """Stiches a list of spectra using a linear model"""
 
-    def __init__(self, spectrum1: List[List[float]], spectrum2: List[List[float]], y_displacement_count: int) -> None:
+    def __init__(self, spectra_list: List[List[List[float]]], y_displacement_count: int) -> None:
         """Constructs a linear stitch of spectra.
 
         .. warning:: The spectra in the list must overlap
@@ -21,7 +21,10 @@ class YDisplacementSpectraStitch(SpectraStitch):
             y_displacement_count : int The amount of displacement in the y direction for the second spectrum
         """
         self._y_displacement_count = y_displacement_count
-        stitched_spectrum = self._stitch_spectra(spectrum1, spectrum2)
+        stitched_spectrum = spectra_list[0]
+
+        for i in range(1, len(spectra_list)):
+            stitched_spectrum = self._stitch_spectra(stitched_spectrum, spectra_list[i])
 
         self._stitched_spectrum: List[List[float]] = stitched_spectrum
 
