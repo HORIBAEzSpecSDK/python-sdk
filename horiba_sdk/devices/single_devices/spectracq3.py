@@ -292,7 +292,7 @@ class SpectrAcq3(AbstractDevice):
         is_data_available: bool = response.results['isDataAvailable']
         return is_data_available
 
-    async def get_available_data(self) -> AvailableDataResults:
+    async def get_available_data(self, channels) -> AvailableDataResults:
         """
         Retrieve the acquired data that is available so far.
 
@@ -301,7 +301,7 @@ class SpectrAcq3(AbstractDevice):
         Returns:
             list: The acquired data.
         """
-        response: Response = await self._execute_command('saq3_getAvailableData', {'index': self._id})
+        response: Response = await self._execute_command('saq3_getAvailableData', {'index': self._id, 'channels': channels})
         available_data: AvailableDataResults = response.results['data']
         return available_data
 
