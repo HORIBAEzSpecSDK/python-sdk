@@ -19,51 +19,46 @@ def save_acquisition_data_to_csv(json_data, csv_filename):
 
 
 def save_spectracq3_data_to_csv(json_data: list[dict], csv_filename: str):
-    headers = [
-        'wavelength',
-        'elapsedTime',
-        'currentSignal_value',
-        'currentSignal_unit',
-        'pmtSignal_value',
-        'pmtSignal_unit',
-        'ppdSignal_value',
-        'ppdSignal_unit',
-        'voltageSignal_value',
-        'voltageSignal_unit',
-        'eventMarker',
-        'overscaleCurrentChannel',
-        'overscaleVoltageChannel',
-        'pointNumber',
-    ]
 
+    headers = []
+    for header in json_data[0].keys():
+            try:
+                for subheader in json_data[0][header].keys():
+                    concat = str(header) + "_" + str(subheader)
+                    headers.append(concat)
+            except:
+                continue
+    headers.append('wavelength')
+    
+    print(str(headers))
+    
     # Write to CSV file
     with open(csv_filename, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(headers)
 
         for data in json_data:
-            row = [
-                data['wavelength'],
-                data['elapsedTime'],
-                data['currentSignal']['value'],
-                data['currentSignal']['unit'],
-                data['pmtSignal']['value'],
-                data['pmtSignal']['unit'],
-                data['ppdSignal']['value'],
-                data['ppdSignal']['unit'],
-                data['voltageSignal']['value'],
-                data['voltageSignal']['unit'],
-                data['eventMarker'],
-                data['overscaleCurrentChannel'],
-                data['overscaleVoltageChannel'],
-                data['pointNumber'],
-            ]
+            row = []
+            if any('current' in header for header in headers):
+                row.append(data['currentSignal']['value'])
+                row.append(data['currentSignal']['unit'])
+            if any('pmt' in header for header in headers):
+                row.append(data['pmtSignal']['value'])
+                row.append(data['pmtSignal']['unit'])
+            if any('ppd' in header for header in headers):
+                row.append(data['ppdSignal']['value'])
+                row.append(data['ppdSignal']['unit'])
+            if any('voltage' in header for header in headers):
+                row.append(data['voltageSignal']['value'])
+                row.append(data['voltageSignal']['unit'])
+            row.append(data['wavelength'])
+
             writer.writerow(row)
 
 
 if __name__ == '__main__':
     # Example usage
-    json_data = """{
+    json_data = '''{
         "acquisition": [{
             "acqIndex": 1,
             "roi": [{
@@ -79,6 +74,6 @@ if __name__ == '__main__':
             }]
         }],
         "timestamp": "2025.03.24 10:04:51.838"
-    }"""
+    }'''
 
     save_acquisition_data_to_csv(json_data, 'acquisition_data.csv')
