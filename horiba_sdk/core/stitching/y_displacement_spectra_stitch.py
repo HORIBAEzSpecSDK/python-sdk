@@ -1,7 +1,7 @@
 from typing import Any, List
 
 from loguru import logger
-from numpy import array, concatenate, dtype, ndarray
+from numpy import argsort, array, concatenate, dtype, ndarray, argmax
 from overrides import override
 
 from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
@@ -10,7 +10,7 @@ from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
 class YDisplacementSpectraStitch(SpectraStitch):
     """Stiches a list of spectra using a linear model"""
 
-    def __init__(self, spectrum1: List[List[float]], spectrum2: List[List[float]], y_displacement_count: int) -> None:
+    def __init__(self, spectra_list: List[List[List[float]]], y_displacement_count: int) -> None:
         """Constructs a linear stitch of spectra.
 
         .. warning:: The spectra in the list must overlap
@@ -21,7 +21,10 @@ class YDisplacementSpectraStitch(SpectraStitch):
             y_displacement_count : int The amount of displacement in the y direction for the second spectrum
         """
         self._y_displacement_count = y_displacement_count
-        stitched_spectrum = self._stitch_spectra(spectrum1, spectrum2)
+        stitched_spectrum = spectra_list[0]
+
+        for i in range(1, len(spectra_list)):
+            stitched_spectrum = self._stitch_spectra(stitched_spectrum, spectra_list[i])
 
         self._stitched_spectrum: List[List[float]] = stitched_spectrum
 
@@ -48,40 +51,43 @@ class YDisplacementSpectraStitch(SpectraStitch):
         return self._stitched_spectrum
 
     def _stitch_spectra(self, spectrum1: List[List[float]], spectrum2: List[List[float]]) -> List[List[float]]:
+        # Adds a common offset to intensity values on the second spectrum. Then performs a simple stitch always keeping the values from the first spectrum in the overlap region. This stitching method can handle both spectra and images (2D arrays).
         fx1, fy1 = spectrum1
         fx2, fy2 = spectrum2
 
+        # Convert to numpy arrays
         x1: ndarray[Any, dtype[Any]] = array(fx1)
         x2: ndarray[Any, dtype[Any]] = array(fx2)
         y1: ndarray[Any, dtype[Any]] = array(fy1)
         y2: ndarray[Any, dtype[Any]] = array(fy2)
+        
+        # Sort spectra while maintaining x-y correspondence
+        sort1 = argsort(x1)
+        sort2 = argsort(x2)
 
-        overlap_start = max(x1[0], x2[0])
-        overlap_end = min(x1[-1], x2[-1])
+        # Create sorted views of both arrays. Also handles 2D arrays of intensity values for images.
+        x1_sorted = x1[sort1]
+        y1_sorted = array([y1i[sort1] for y1i in y1])
+        x2_sorted = x2[sort2]
+        y2_sorted = array([y2i[sort2] for y2i in y2])
 
-        if overlap_start >= overlap_end:
-            logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
-            raise Exception('No overlapping region between spectra')
-
-        # Masks for overlapping region
-        mask1 = (x1 >= overlap_start) & (x1 <= overlap_end)
-        mask2 = (x2 >= overlap_start) & (x2 <= overlap_end)
-
-        x1_overlap = x1[mask1]
-        y1_overlap = y1[mask1]
-
+        #Adds offset to the second spectrum's intensity values.
         y2_displaced = y2 + self._y_displacement_count
-        y2_overlap = y2_displaced[mask2]
 
-        y_stitched_overlap = (y1_overlap + y2_overlap) / 2
+        # Concatenates the spectra if there is no overlap.
+        if x1_sorted[-1] < x2_sorted[0]:
+            logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
+            return [concatenate([x1_sorted, x2_sorted]).tolist(), concatenate([y1_sorted, y2_displaced], axis=1).tolist()]
+        
+        # Finds the index of the smallest element in the second spectrum that is greater than the last element in the first spectrum
+        overlap_end_idx = argmax(x2_sorted > x1_sorted[-1])
 
-        x1_before_overlap = x1[x1 < overlap_start]
-        y1_before_overlap = y1[x1 < overlap_start]
+        #Trims x2_sorted and y2_sorted to only include elements after the overlap. Also handles 2D arrays of intensity values for images.
+        x2_after_overlap = x2_sorted[overlap_end_idx:]
+        y2_after_overlap = y2_displaced[:, overlap_end_idx:]
 
-        x2_after_overlap = x2[x2 > overlap_end]
-        y2_after_overlap = y2_displaced[x2 > overlap_end]
-
-        x_stitched = concatenate([x1_before_overlap, x1_overlap, x2_after_overlap])
-        y_stitched = concatenate([y1_before_overlap, y_stitched_overlap, y2_after_overlap])
+        #Concatenate the spectra. Also handles 2D arrays for images
+        x_stitched = concatenate([x1_sorted, x2_after_overlap])
+        y_stitched = concatenate([y1_sorted, y2_after_overlap],axis=1)
 
         return [x_stitched.tolist(), y_stitched.tolist()]
