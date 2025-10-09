@@ -1,6 +1,8 @@
 import csv
 import json
 
+from loguru import logger
+
 
 def save_acquisition_data_to_csv(json_data, csv_filename):
     # Parse the JSON data
@@ -27,6 +29,7 @@ def save_spectracq3_data_to_csv(json_data: list[dict], csv_filename: str):
                     concat = str(header) + "_" + str(subheader)
                     headers.append(concat)
             except Exception as e:
+                logger.debug(str(e))
                 continue
     headers.append('wavelength')
     
