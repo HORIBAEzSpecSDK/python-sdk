@@ -51,7 +51,9 @@ class YDisplacementSpectraStitch(SpectraStitch):
         return self._stitched_spectrum
 
     def _stitch_spectra(self, spectrum1: List[List[float]], spectrum2: List[List[float]]) -> List[List[float]]:
-        # Adds a common offset to intensity values on the second spectrum. Then performs a simple stitch always keeping the values from the first spectrum in the overlap region. This stitching method can handle both spectra and images (2D arrays).
+        # Adds a common offset to intensity values on the second spectrum. 
+        # Then performs a simple stitch always keeping the values from the first spectrum in the overlap region. 
+        # This stitching method can handle both spectra and images (2D arrays).
         fx1, fy1 = spectrum1
         fx2, fy2 = spectrum2
 
@@ -69,7 +71,7 @@ class YDisplacementSpectraStitch(SpectraStitch):
         x1_sorted = x1[sort1]
         y1_sorted = array([y1i[sort1] for y1i in y1])
         x2_sorted = x2[sort2]
-        y2_sorted = array([y2i[sort2] for y2i in y2])
+        # y2_sorted = array([y2i[sort2] for y2i in y2])
 
         #Adds offset to the second spectrum's intensity values.
         y2_displaced = y2 + self._y_displacement_count
@@ -77,12 +79,15 @@ class YDisplacementSpectraStitch(SpectraStitch):
         # Concatenates the spectra if there is no overlap.
         if x1_sorted[-1] < x2_sorted[0]:
             logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
-            return [concatenate([x1_sorted, x2_sorted]).tolist(), concatenate([y1_sorted, y2_displaced], axis=1).tolist()]
+            return [concatenate([x1_sorted, x2_sorted]).tolist(), 
+                    concatenate([y1_sorted, y2_displaced], axis=1).tolist()]
         
-        # Finds the index of the smallest element in the second spectrum that is greater than the last element in the first spectrum
+        # Finds the index of the smallest element in the second spectrum 
+        # that is greater than the last element in the first spectrum
         overlap_end_idx = argmax(x2_sorted > x1_sorted[-1])
 
-        #Trims x2_sorted and y2_sorted to only include elements after the overlap. Also handles 2D arrays of intensity values for images.
+        # Trims x2_sorted and y2_sorted to only include elements after the overlap. 
+        # Also handles 2D arrays of intensity values for images.
         x2_after_overlap = x2_sorted[overlap_end_idx:]
         y2_after_overlap = y2_displaced[:, overlap_end_idx:]
 
