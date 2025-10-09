@@ -21,12 +21,12 @@ def save_acquisition_data_to_csv(json_data, csv_filename):
 def save_spectracq3_data_to_csv(json_data: list[dict], csv_filename: str):
 
     headers = []
-    for header in json_data[0].keys():
+    for header in json_data[0]:
             try:
-                for subheader in json_data[0][header].keys():
+                for subheader in json_data[0][header]:
                     concat = str(header) + "_" + str(subheader)
                     headers.append(concat)
-            except:
+            except Exception as e:
                 continue
     headers.append('wavelength')
     
