@@ -1,7 +1,7 @@
 from typing import Any, List
 
 from loguru import logger
-from numpy import argsort, array, concatenate, dtype, ndarray, argmax
+from numpy import argmax, argsort, array, concatenate, dtype, ndarray
 from overrides import override
 
 from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
