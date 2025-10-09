@@ -301,7 +301,8 @@ class SpectrAcq3(AbstractDevice):
         Returns:
             list: The acquired data.
         """
-        response: Response = await self._execute_command('saq3_getAvailableData', {'index': self._id, 'channels': channels})
+        response: Response = await self._execute_command('saq3_getAvailableData', {'index': self._id, 
+                                                                                   'channels': channels})
         available_data: AvailableDataResults = response.results['data']
         return available_data
 
