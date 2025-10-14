@@ -688,3 +688,28 @@ class ChargeCoupledDevice(AbstractDevice):
             raman_shift = ((1 / excitation_wavelength) - (1 / wave_length)) * (10**7)
             raman_values.append(raman_shift)
         return raman_values
+
+    async def set_em_gain(self, gain : int ) -> None:
+        """Sets EM gain value for EMCCDs.
+
+        Args:
+            Gain (int): EM gain value. ***WARNING*** Using EM gains above 400 will shorten the lifespan of the detector.
+
+        """
+
+
+        await super()._execute_command('ccd_setEMGain', {'index': self._id, 'gain': gain})
+    
+
+    async def get_em_gain(self) -> int:
+        """Gets EM gain value for EMCCDs.
+
+        Returns:
+            Gain (int): EM gain value.
+
+        """
+
+
+        response: Response = await super()._execute_command('ccd_getEMGain', {'index': self._id})
+        gain = int(response.results['gain'])
+        return gain
