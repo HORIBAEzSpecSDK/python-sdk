@@ -1,5 +1,4 @@
 import asyncio
-import random
 
 from loguru import logger
 
@@ -47,9 +46,10 @@ async def main():
                 try:
                     await asyncio.sleep((exposure_time/1000)*2)
                     logger.info("Trying for data...")
-                    my_ccd_data = await ccd.get_acquisition_data()
+                    logger.info(await ccd.get_acquisition_data())
                     break
-                except:
+                except Exception as e:
+                    logger.error(f"Error: {e}") # This error is expected in this case
                     logger.info("Data not acquired, aborting acquisition...")
                     
                     # CCD will be busy infinitely because it is waiting for a trigger that is not coming.

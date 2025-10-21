@@ -1,5 +1,4 @@
 import asyncio
-import random
 
 from loguru import logger
 
@@ -66,7 +65,8 @@ async def main():
                     await asyncio.sleep((exposure_time/1000)*2)
                     raw_data = await ccd.get_acquisition_data()
                     break
-                except:
+                except Exception as e:
+                    logger.error(f"Error: {e}")
                     logger.info("Data not ready yet...")
 
             logger.info(f'Acquired data: {raw_data}')

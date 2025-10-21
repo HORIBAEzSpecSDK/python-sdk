@@ -62,7 +62,7 @@ async def main():
 
         exposure_time = 1000 # in ms
         await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
-        await ccd.set_exposure_time(1000)
+        await ccd.set_exposure_time(exposure_time)
         await ccd.set_gain(0)  # Least sensitive
         await ccd.set_speed(0)  # Slowest, but least read noise
 
@@ -125,7 +125,8 @@ async def capture(ccd):
                 await asyncio.sleep((exposure_time/1000)*2)
                 raw_data = await ccd.get_acquisition_data()
                 break
-            except:
+            except Exception as e:
+                logger.error(f"Error: {e}")
                 logger.info("Data not ready yet...")
         xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'], raw_data['acquisition'][0]['roi'][0]['yData']]
 

@@ -1,5 +1,4 @@
 import asyncio
-import random
 
 from loguru import logger
 
@@ -62,7 +61,8 @@ async def main():
                     await asyncio.sleep((exposure_time/1000)*2)
                     data_shutter_closed = await ccd.get_acquisition_data()
                     break
-                except:
+                except Exception as e:
+                    logger.error(f"Error: {e}")
                     logger.info("Data not ready yet...")
             logger.info(f'Data with closed shutter: {data_shutter_closed}')
 
@@ -75,7 +75,8 @@ async def main():
                     await asyncio.sleep((exposure_time/1000)*2)
                     data_shutter_open = await ccd.get_acquisition_data()
                     break
-                except:
+                except Exception as e:
+                    logger.error(f"Error: {e}")
                     logger.info("Data not ready yet...")
             logger.info(f'Data with open shutter: {data_shutter_open}')
 

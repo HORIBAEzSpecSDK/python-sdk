@@ -67,7 +67,8 @@ async def main():
                         await asyncio.sleep((exposure_time/1000)*2)
                         raw_data = await ccd.get_acquisition_data()
                         break
-                    except:
+                    except Exception as e:
+                        logger.error(f"Error: {e}")
                         logger.info("Data not ready yet...")
 
                 logger.info(f'Acquired data: {raw_data}')
@@ -76,7 +77,8 @@ async def main():
                 # xy_data = raw_data[0]['roi'][0]['xyData']
 
                 # for image
-                xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'][0], raw_data['acquisition'][0]['roi'][0]['yData']]
+                xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'][0], 
+                           raw_data['acquisition'][0]['roi'][0]['yData']]
 
 
     finally:
