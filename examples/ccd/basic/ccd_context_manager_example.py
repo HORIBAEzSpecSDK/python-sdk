@@ -1,8 +1,10 @@
 import asyncio
-import random
 
 from loguru import logger
 
+from horiba_sdk.core.acquisition_format import AcquisitionFormat
+from horiba_sdk.core.timer_resolution import TimerResolution
+from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.devices.device_manager import DeviceManager
 
 
@@ -16,32 +18,58 @@ async def main():
         return
 
     async with device_manager.charge_coupled_devices[0] as ccd:  # ChargeCoupledDevice
+        
+                # ccd configuration
+
+        ccd_config = await ccd.get_configuration()
+        chip_x = int(ccd_config['chipWidth'])
+        chip_y = int(ccd_config['chipHeight'])
+
+        # core config functions
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
+        await ccd.set_region_of_interest(
+            1, 0, 0, chip_x, chip_y, 1, chip_y
+        )  # Set default ROI, if you want a custom ROI, pass the parameters
+        await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
+
+        await ccd.set_acquisition_count(1)
+
+        exposure_time = 1000 # in ms
+        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
+        await ccd.set_exposure_time(exposure_time)
+        await ccd.set_gain(0)  # Least sensitive
+        await ccd.set_speed(0)  # Slowest, but least read noise
+
+        await ccd.set_acquisition_count(1)
+
+        
         chip_size = await ccd.get_chip_size()
         logger.info(f'Chip size is {chip_size}')
 
-        await ccd.set_exposure_time(random.randint(1, 5))
-        exposure_time = await ccd.get_exposure_time()
-        logger.info(f'Exposure time: {exposure_time}')
+        exposure_time_get = await ccd.get_exposure_time()
+        logger.info(f'Exposure time: {exposure_time_get}')
 
         chip_temperature = await ccd.get_chip_temperature()
         logger.info(f'Chip temperature: {chip_temperature}')
 
         speed = await ccd.get_speed_token()
         logger.info(f'Speed token: {speed}')
-        # Set default ROI, if you want a custom ROI, pass the parameters
-        await ccd.set_region_of_interest(1, 0, 0, 16, 4, 1, 4)
-        if await ccd.get_acquisition_ready():
-            await ccd.acquisition_start(open_shutter=True)
-            await asyncio.sleep(1)  # Wait a short period for the acquisition to start
-            # Poll for acquisition status
-            acquisition_busy = True
-            while acquisition_busy:
-                acquisition_busy = await ccd.get_acquisition_busy()
-                await asyncio.sleep(1)
-                logger.info('Acquisition busy')
 
-            acquisition_data = await ccd.get_acquisition_data()
-            logger.info(f'Acquisition data: {acquisition_data}')
+
+        if await ccd.get_acquisition_ready():
+            logger.info('Starting acquisition...')
+            await ccd.acquisition_start(open_shutter=True)
+            raw_data = []
+            while True:
+                try:
+                    await asyncio.sleep((exposure_time/1000)*2)
+                    raw_data = await ccd.get_acquisition_data()
+                    break
+                except Exception as e:
+                    logger.error(f"Error: {e}")
+                    logger.info("Data not ready yet...")
+
+            logger.info(f'Acquired data: {raw_data}')
 
     await asyncio.sleep(1)
     await device_manager.stop()
