@@ -8,7 +8,6 @@ from horiba_sdk.devices.device_manager import DeviceManager
 
 
 async def main():
-    acquisition_format = AcquisitionFormat.SPECTRA_IMAGE
     device_manager = DeviceManager(start_icl=True)
     await device_manager.start()
 
@@ -28,7 +27,7 @@ async def main():
 
     try:
         logger.info('Setting up acquisition...')
-        await ccd.set_acquisition_format(1, acquisition_format)
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
         await ccd.set_region_of_interest(
             1, 0, 0, chip_x, chip_y, 1, chip_y
             )
