@@ -27,7 +27,6 @@ async def main():
     await wait_for_mono(mono)
     ccd = device_manager.charge_coupled_devices[0]
     await ccd.open()
-    await wait_for_ccd(ccd)
 
     try:
         # mono configuration
@@ -57,36 +56,48 @@ async def main():
         ccd_config = await ccd.get_configuration()
         chip_x = int(ccd_config['chipWidth'])
         chip_y = int(ccd_config['chipHeight'])
-        await ccd.set_acquisition_count(1)
-        await ccd.set_center_wavelength(mono.id(), mono_wavelength)
-        await ccd.set_exposure_time(1000)
-        await ccd.set_gain(0)  # High Light
-        await ccd.set_speed(2)  # 1 MHz Ultra
-        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
+
+        # core config functions
         await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
         await ccd.set_region_of_interest(
             1, 0, 0, chip_x, chip_y, 1, chip_y
         )  # Set default ROI, if you want a custom ROI, pass the parameters
+        await ccd.set_center_wavelength(mono.id(), mono_wavelength)
         await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
+
+        await ccd.set_acquisition_count(1)
+
+        exposure_time = 1000 # in ms
+        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
+        await ccd.set_exposure_time(1000)
+        await ccd.set_gain(0)  # Least sensitive
+        await ccd.set_speed(0)  # Slowest, but least read noise
+
 
         if await ccd.get_acquisition_ready():
             logger.info('Starting acquisition...')
             await ccd.acquisition_start(open_shutter=True)
-            await asyncio.sleep(1)  # Wait a short period for the acquisition to start
-            await wait_for_ccd(ccd)
+            raw_data = []
+            while True:
+                try:
+                    await asyncio.sleep((exposure_time/1000)*2)
+                    raw_data = await ccd.get_acquisition_data()
+                    break
+                except:
+                    logger.info("Data not ready yet...")
 
-            raw_data = await ccd.get_acquisition_data()
             logger.info(f'Acquired data: {raw_data}')
             x_data = raw_data['acquisition'][0]['roi'][0]['xData']
             y_data = raw_data['acquisition'][0]['roi'][0]['yData']
-            # for image
-            # xy_data = [raw_dataraw_data['acquisition'][0]['roi'][0]['yData'][0]['roi'][0]['xData'][0],
-            # raw_dataraw_data['acquisition'][0]['roi'][0]['yData'][0]['roi'][0]['yData'][0]]
-            with open('outputcsv.csv', 'w', newline='') as csvfile:
+
+
+            with open('data.csv', 'w', newline='') as csvfile:
                 w = csv.writer(csvfile)
                 fields = ['wavelength', 'intensity']
                 w.writerow(fields)
                 w.writerows(zip(x_data, y_data[0]))
+            logger.info("Data written to data.csv")
+
         else:
             raise Exception('CCD not ready for acquisition')
     finally:
@@ -114,15 +125,6 @@ async def plot_values(target_wavelength, x_data, y_data):
         arr = np.array(y_data)
         plt.imshow(arr, interpolation='nearest', aspect='auto')
         plt.show()
-
-
-async def wait_for_ccd(ccd):
-    acquisition_busy = True
-    while acquisition_busy:
-        acquisition_busy = await ccd.get_acquisition_busy()
-        await asyncio.sleep(1)
-        logger.info('Acquisition busy')
-
 
 async def wait_for_mono(mono):
     mono_busy = True

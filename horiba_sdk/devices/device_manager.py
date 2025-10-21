@@ -113,6 +113,11 @@ class DeviceManager(AbstractDeviceManager):
 
         if self._binary_messages:
             await self._enable_binary_messages()
+        
+        else:
+            await self._disable_binary_messages()
+
+        await asyncio.sleep(5) # can optimize this timeout based on PC performance
 
         await self.discover_devices()
 
@@ -150,6 +155,13 @@ class DeviceManager(AbstractDeviceManager):
 
     async def _enable_binary_messages(self) -> None:
         bin_mode_command: Command = Command('icl_binMode', {'mode': 'all'})
+        response: Response = await self._icl_communicator.request_with_response(bin_mode_command)
+
+        if response.errors:
+            self._handle_errors(response.errors)
+    
+    async def _disable_binary_messages(self) -> None:
+        bin_mode_command: Command = Command('icl_binMode', {'mode': 'none'})
         response: Response = await self._icl_communicator.request_with_response(bin_mode_command)
 
         if response.errors:

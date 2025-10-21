@@ -26,7 +26,6 @@ async def main():
     await wait_for_mono(mono)
     ccd = device_manager.charge_coupled_devices[0]
     await ccd.open()
-    await wait_for_ccd(ccd)
 
     start_wavelength = 400
     end_wavelength = 600
@@ -43,28 +42,29 @@ async def main():
         await wait_for_mono(mono)
         await mono.set_slit_position(Monochromator.Slit.A, 0.5)
         await wait_for_mono(mono)
-        wavelength = await mono.get_current_wavelength()
+        mono_wavelength = await mono.get_current_wavelength()
 
         # ccd configuration
-        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
-        await ccd.set_exposure_time(100)
-        await ccd.set_gain(0)  # High Light
-        await ccd.set_speed(2)  # 1 MHz Ultra
-        await ccd.set_acquisition_count(1)
 
-        await ccd.set_center_wavelength(mono.id(), wavelength)
-        await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
+        ccd_config = await ccd.get_configuration()
+        chip_x = int(ccd_config['chipWidth'])
+        chip_y = int(ccd_config['chipHeight'])
+
+        # core config functions
         await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
-
-        ##pb
-        ccd_configuration = await ccd.get_configuration()
-
-        ##get chip size info
-        chip_x = int(ccd_configuration['chipWidth'])
-        chip_y = int(ccd_configuration['chipHeight'])
         await ccd.set_region_of_interest(
             1, 0, 0, chip_x, chip_y, 1, chip_y
         )  # Set default ROI, if you want a custom ROI, pass the parameters
+        await ccd.set_center_wavelength(mono.id(), mono_wavelength)
+        await ccd.set_x_axis_conversion_type(XAxisConversionType.FROM_ICL_SETTINGS_INI)
+
+        await ccd.set_acquisition_count(1)
+
+        exposure_time = 1000 # in ms
+        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
+        await ccd.set_exposure_time(1000)
+        await ccd.set_gain(0)  # Least sensitive
+        await ccd.set_speed(0)  # Slowest, but least read noise
 
         center_wavelengths = await ccd.range_mode_center_wavelengths(mono.id(), start_wavelength, end_wavelength, 100)
         logger.info(f'Number of captures: {len(center_wavelengths)}')
@@ -72,6 +72,8 @@ async def main():
         with open('centerwavelengths.txt', 'w') as f:
             f.write(str(center_wavelengths))
             f.close()
+        
+        logger.info("List of center wavelengths written to centerwavelengths.txt")
 
         captures = []
         for center_wavelength in center_wavelengths:
@@ -114,17 +116,18 @@ async def main():
 async def capture(ccd):
     xy_data = [[0], [0]]
     if await ccd.get_acquisition_ready():
+        logger.info('Starting acquisition...')
+        exposure_time = await ccd.get_exposure_time()
         await ccd.acquisition_start(open_shutter=True)
-        await asyncio.sleep(1)  # Wait a short period for the acquisition to start
-        await wait_for_ccd(ccd)
-
-        raw_data = await ccd.get_acquisition_data()
-        logger.info(raw_data)
-        # for spectra format
-        # xy_data = raw_data[0]['roi'][0]['xyData']
-        # for image format
+        raw_data = []
+        while True:
+            try:
+                await asyncio.sleep((exposure_time/1000)*2)
+                raw_data = await ccd.get_acquisition_data()
+                break
+            except:
+                logger.info("Data not ready yet...")
         xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'], raw_data['acquisition'][0]['roi'][0]['yData']]
-        logger.info(xy_data)
 
     else:
         raise Exception('CCD not ready for acquisition')

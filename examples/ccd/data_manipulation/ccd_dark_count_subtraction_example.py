@@ -4,6 +4,7 @@ import random
 from loguru import logger
 
 from horiba_sdk.core.acquisition_format import AcquisitionFormat
+from horiba_sdk.core.timer_resolution import TimerResolution
 from horiba_sdk.core.x_axis_conversion_type import XAxisConversionType
 from horiba_sdk.devices.device_manager import DeviceManager
 
@@ -18,7 +19,6 @@ async def subtract_dark_count(shutter_open_data: list[float], shutter_closed_dat
 
 
 async def main():
-    acquisition_format = AcquisitionFormat.SPECTRA_IMAGE
     device_manager = DeviceManager(start_icl=True)
     await device_manager.start()
 
@@ -31,46 +31,52 @@ async def main():
     await ccd.open()
 
     try:
-        await ccd.set_acquisition_count(1)
+        # ccd configuration
+
+        ccd_config = await ccd.get_configuration()
+        chip_x = int(ccd_config['chipWidth'])
+        chip_y = int(ccd_config['chipHeight'])
+
+        # core config functions
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
+        await ccd.set_region_of_interest(
+            1, 0, 0, chip_x, chip_y, 1, chip_y
+        )  # Set default ROI, if you want a custom ROI, pass the parameters
         await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
-        await ccd.set_acquisition_format(1, acquisition_format)
-        logger.info(await ccd.get_acquisition_count())
-        logger.info(await ccd.get_clean_count())
-        logger.info(await ccd.get_timer_resolution())
-        logger.info(await ccd.get_gain_token())
-        logger.info(await ccd.get_chip_size())
-        logger.info(await ccd.get_exposure_time())
-        await ccd.set_exposure_time(random.randint(1, 5))
-        logger.info(await ccd.get_exposure_time())
-        logger.info(await ccd.get_chip_temperature())
-        await ccd.set_region_of_interest()  # Set default ROI, if you want a custom ROI, pass the parameters
-        logger.info(await ccd.get_speed_token())
+
+        await ccd.set_acquisition_count(1)
+
+        exposure_time = 1000 # in ms
+        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
+        await ccd.set_exposure_time(1000)
+        await ccd.set_gain(0)  # Least sensitive
+        await ccd.set_speed(0)  # Slowest, but least read noise
+
+        await ccd.set_acquisition_count(1)
         data_shutter_closed = []
         if await ccd.get_acquisition_ready():
+            logger.info('Starting acquisition...')
             await ccd.acquisition_start(open_shutter=False)
-            await asyncio.sleep(1)  # Wait a short period for the acquisition to start
-            # Poll for acquisition status
-            acquisition_busy = True
-            while acquisition_busy:
-                acquisition_busy = await ccd.get_acquisition_busy()
-                await asyncio.sleep(0.3)
-                logger.info('Acquisition busy')
-
-            data_shutter_closed = await ccd.get_acquisition_data()
+            while True:
+                try:
+                    await asyncio.sleep((exposure_time/1000)*2)
+                    data_shutter_closed = await ccd.get_acquisition_data()
+                    break
+                except:
+                    logger.info("Data not ready yet...")
             logger.info(f'Data with closed shutter: {data_shutter_closed}')
 
         data_shutter_open = []
         if await ccd.get_acquisition_ready():
+            logger.info('Starting acquisition...')
             await ccd.acquisition_start(open_shutter=True)
-            await asyncio.sleep(1)  # Wait a short period for the acquisition to start
-            # Poll for acquisition status
-            acquisition_busy = True
-            while acquisition_busy:
-                acquisition_busy = await ccd.get_acquisition_busy()
-                await asyncio.sleep(0.3)
-                logger.info('Acquisition busy')
-
-            data_shutter_open = await ccd.get_acquisition_data()
+            while True:
+                try:
+                    await asyncio.sleep((exposure_time/1000)*2)
+                    data_shutter_open = await ccd.get_acquisition_data()
+                    break
+                except:
+                    logger.info("Data not ready yet...")
             logger.info(f'Data with open shutter: {data_shutter_open}')
 
         data_shutter_open_selected = data_shutter_open['acquisition'][0]['roi'][0]['yData'][0]

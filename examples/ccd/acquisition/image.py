@@ -21,54 +21,69 @@ async def main():
     await device_manager.start()
 
     if not device_manager.charge_coupled_devices:  # or not device_manager.monochromators:
-        logger.error('Required monochromator or ccd not found')
+        logger.error('Required ccd not found')
         await device_manager.stop()
         return
-
-    # mono = device_manager.monochromators[0]
-    # await mono.open()
-    # await wait_for_mono(mono)
+    
+    # comment in mentions of mono if using an iHR or microHR
+    #mono = device_manager.monochromators[0]
+    #await mono.open()
+    #await wait_for_mono(mono)
     ccd = device_manager.charge_coupled_devices[0]
     await ccd.open()
-    await wait_for_ccd(ccd)
 
     try:
         # mono init
-        # await mono.home()
-        # await wait_for_mono(mono)
+        #await mono.home()
+        #await wait_for_mono(mono)
 
-        # ccd config
-        await ccd.set_acquisition_count(100)
-        await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
-        await ccd.set_timer_resolution(TimerResolution.MICROSECONDS)
-        await ccd.set_exposure_time(1)
-        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
-        await ccd.set_gain(0)  # High Light
-        await ccd.set_speed(2)  # 1 MHz Ultra
+        # ccd configuration
 
         ccd_config = await ccd.get_configuration()
-        chip_width = int(ccd_config['chipWidth'])
-        chip_height = int(ccd_config['chipHeight'])
-        await ccd.set_region_of_interest(1, 0, 0, chip_width, chip_height, 1, 1)
+        chip_x = int(ccd_config['chipWidth'])
+        chip_y = int(ccd_config['chipHeight'])
+
+        # core config functions
+        await ccd.set_acquisition_format(1, AcquisitionFormat.SPECTRA_IMAGE)
+        await ccd.set_region_of_interest(
+            1, 0, 0, chip_x, chip_y, 1, 1
+        )  # Set default ROI, if you want a custom ROI, pass the parameters
+
+        # will acquire in pixel domain
+        await ccd.set_x_axis_conversion_type(XAxisConversionType.NONE)
+
+        await ccd.set_acquisition_count(1)
+
+        exposure_time = 1000 # in ms
+        await ccd.set_timer_resolution(TimerResolution.MILLISECONDS)
+        await ccd.set_exposure_time(exposure_time)
 
         if await ccd.get_acquisition_ready():
-            await ccd.acquisition_start(open_shutter=True)
-            await wait_for_ccd(ccd)
+                logger.info('Starting acquisition...')
+                await ccd.acquisition_start(open_shutter=True)
+                raw_data = []
+                while True:
+                    try:
+                        await asyncio.sleep((exposure_time/1000)*2)
+                        raw_data = await ccd.get_acquisition_data()
+                        break
+                    except:
+                        logger.info("Data not ready yet...")
 
-            raw_data = await ccd.get_acquisition_data()
+                logger.info(f'Acquired data: {raw_data}')
 
-            # for spectra
-            # xy_data = raw_data[0]['roi'][0]['xyData']
+                # for spectra
+                # xy_data = raw_data[0]['roi'][0]['xyData']
 
-            # for image
-            xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'][0], raw_data['acquisition'][0]['roi'][0]['yData']]
+                # for image
+                xy_data = [raw_data['acquisition'][0]['roi'][0]['xData'][0], raw_data['acquisition'][0]['roi'][0]['yData']]
 
-            await plot_image(xy_data)
 
     finally:
         await ccd.close()
         logger.info('Waiting before closing CCD')
 
+    await plot_image(xy_data)
     await device_manager.stop()
 
 
@@ -77,13 +92,6 @@ async def plot_image(xy_data):
     plt.imshow(arr, interpolation='nearest', aspect='auto')
     plt.show()
 
-
-async def wait_for_ccd(ccd):
-    acquisition_busy = True
-    while acquisition_busy:
-        acquisition_busy = await ccd.get_acquisition_busy()
-        await asyncio.sleep(1)
-        logger.info('Acquisition busy')
 
 
 async def wait_for_mono(mono):
