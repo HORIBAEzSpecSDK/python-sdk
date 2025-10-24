@@ -25,7 +25,6 @@ async def main():
 
     ccd = device_manager.charge_coupled_devices[0]
     await ccd.open()
-    await wait_for_ccd(ccd)
 
     try:
         if not await mono.is_initialized():
@@ -103,13 +102,6 @@ async def main():
 
     await device_manager.stop()
 
-
-async def wait_for_ccd(ccd):
-    acquisition_busy = True
-    while acquisition_busy:
-        acquisition_busy = await ccd.get_acquisition_busy()
-        await asyncio.sleep(1)
-        logger.info('Acquisition busy')
 
 
 async def wait_for_mono(mono):
