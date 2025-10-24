@@ -165,15 +165,6 @@ async def plot_values(start_wavelength, end_wavelength, xy_data):
     plt.grid(True)
     plt.show()
 
-
-async def wait_for_ccd(ccd):
-    acquisition_busy = True
-    while acquisition_busy:
-        acquisition_busy = await ccd.get_acquisition_busy()
-        await asyncio.sleep(1)
-        logger.info('Acquisition busy')
-
-
 async def wait_for_mono(mono):
     mono_busy = True
     while mono_busy:
