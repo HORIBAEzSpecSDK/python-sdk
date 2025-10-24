@@ -83,7 +83,6 @@ async def main():
             logger.info(f'Mono wavelength {mono_wavelength}')
 
             await ccd.set_center_wavelength(mono.id(), mono_wavelength)
-            await wait_for_ccd(ccd)
 
             xy_data = await capture(ccd)
             # Add debug logging to check the data structure
