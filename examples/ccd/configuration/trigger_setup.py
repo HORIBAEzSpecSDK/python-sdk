@@ -17,7 +17,6 @@ async def main():
 
     ccd = device_manager.charge_coupled_devices[0]
     await ccd.open()
-    await wait_for_ccd(ccd)
 
     try:
         ccd_config = await ccd.get_configuration()
@@ -30,14 +29,6 @@ async def main():
         await ccd.close()
 
     await device_manager.stop()
-
-
-async def wait_for_ccd(ccd):
-    acquisition_busy = True
-    while acquisition_busy:
-        acquisition_busy = await ccd.get_acquisition_busy()
-        await asyncio.sleep(1)
-        logger.info('Acquisition busy')
 
 
 if __name__ == '__main__':
