@@ -51,7 +51,6 @@ async def main():
         await ccd.set_gain(0)  # Least sensitive
         await ccd.set_speed(0)  # Slowest, but least read noise
 
-        await ccd.set_acquisition_count(1)
         data_shutter_closed = []
         if await ccd.get_acquisition_ready():
             logger.info('Starting acquisition...')
