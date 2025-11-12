@@ -50,8 +50,8 @@ class Monochromator(AbstractDevice):
         """
 
         # TODO: clarify naming of filter wheel
-        FIRST = 0
-        SECOND = 1
+        INTERNAL = 1
+        EXTERNAL = 2
 
     @final
     class FilterWheelPosition(Enum):
@@ -60,12 +60,13 @@ class Monochromator(AbstractDevice):
         .. note:: the filter wheel is an optional module
 
         """
-
-        # TODO: clarify naming of filter wheel positions
-        RED = 0
-        GREEN = 1
-        BLUE = 2
-        YELLOW = 3
+        
+        FIRST = 1
+        SECOND = 2
+        THIRD = 3
+        FOURTH = 4
+        FIFTH = 5
+        SIXTH = 6
 
     @final
     class Mirror(Enum):
