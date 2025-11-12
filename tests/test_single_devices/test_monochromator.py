@@ -83,8 +83,8 @@ async def test_monochromator_filter_wheel(fake_device_manager, fake_icl_exe):  #
         # act
         # assert
         assert (
-            await monochromator.get_filter_wheel_position(Monochromator.FilterWheel.FIRST)
-            == Monochromator.FilterWheelPosition.RED
+            await monochromator.get_filter_wheel_position(Monochromator.FilterWheel.INTERNAL)
+            == Monochromator.FilterWheelPosition.FIRST
         )
 
 
@@ -94,12 +94,12 @@ async def test_monochromator_change_filter_wheel_position(fake_device_manager, f
     async with fake_device_manager.monochromators[0] as monochromator:
         # act
         await monochromator.set_filter_wheel_position(
-            Monochromator.FilterWheel.FIRST, Monochromator.FilterWheelPosition.RED
+            Monochromator.FilterWheel.INTERNAL, Monochromator.FilterWheelPosition.FIRST
         )
         # assert
         assert (
-            await monochromator.get_filter_wheel_position(Monochromator.FilterWheel.FIRST)
-            == Monochromator.FilterWheelPosition.RED
+            await monochromator.get_filter_wheel_position(Monochromator.FilterWheel.INTERNAL)
+            == Monochromator.FilterWheelPosition.FIRST
         )
 
 
