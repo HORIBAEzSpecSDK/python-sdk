@@ -23,9 +23,9 @@ async def main():
     await spectracq3.open()
     await wait_for_saq3(spectracq3)
 
-    start_wavelength = 490
-    end_wavelength = 520
-    increment_wavelength = 3
+    start_wavelength = 450
+    end_wavelength = 750
+    increment_wavelength = 100
     wavelengths = list(range(start_wavelength, end_wavelength + 1, increment_wavelength))
     x_data = []
     y_data_current = []
@@ -33,23 +33,24 @@ async def main():
     y_data_counts = []
 
     try:
-        await spectracq3.set_acq_set(1, 0, 1, 0)
-
+        await spectracq3.set_acq_set(len(wavelengths), 0, 1, 0) # Set number of acquisition to number of wavelength data points
+        await spectracq3.acq_start(3) # Software trigger mode
         for wavelength in wavelengths:
             await mono.move_to_target_wavelength(wavelength)
             while await mono.is_busy():
                 await asyncio.sleep(0.1)
             logger.info(f'Monochromator set to {wavelength}nm')
 
-            if not await spectracq3.is_busy():
-                await spectracq3.acq_start(1)
-                await asyncio.sleep(3)
-                data = await spectracq3.get_available_data()
-                logger.info(f'Acquired data at {wavelength}nm: {data}')
-                x_data.append(wavelength)
-                y_data_current.append(data[0]['currentSignal']['value'])
-                y_data_voltage.append(data[0]['voltageSignal']['value'])
-                y_data_counts.append(data[0]['ppdSignal']['value'])
+            await spectracq3.force_trigger()
+            await asyncio.sleep(0.1)
+            while not (await spectracq3.is_data_available()): # Wait for data to be available
+                await asyncio.sleep(0.1)
+            data = await spectracq3.get_available_data()
+            logger.info(f'Acquired data at {wavelength}nm: {data}')
+            x_data.append(wavelength)
+            y_data_current.append(data[0]['currentSignal']['value'])
+            y_data_voltage.append(data[0]['voltageSignal']['value'])
+            y_data_counts.append(data[0]['ppdSignal']['value'])
 
     finally:
         await mono.close()
