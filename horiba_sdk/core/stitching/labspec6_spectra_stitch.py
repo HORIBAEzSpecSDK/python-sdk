@@ -1,7 +1,7 @@
-from typing import Any, List
+from typing import Any
 
 from loguru import logger
-from numpy import array, concatenate, dtype, ndarray
+from numpy import argmax, argmin, argsort, array, concatenate, dtype, ndarray
 from overrides import override
 
 from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
@@ -10,13 +10,13 @@ from horiba_sdk.core.stitching.spectra_stitch import SpectraStitch
 class LabSpec6SpectraStitch(SpectraStitch):
     """Stitches a list of spectra using a weighted average as in LabSpec6"""
 
-    def __init__(self, spectra_list: List[List[List[float]]]) -> None:
+    def __init__(self, spectra_list: list[list[list[float]]]) -> None:
         """Constructs a linear stitch of spectra.
 
         .. warning:: The spectra in the list must overlap
 
         Parameters
-            spectra_list : List[List[List[float]]] List of spectra to stitch in the form [[x1_values, y1_values],
+            spectra_list : list[list[list[float]]] list of spectra to stitch in the form [[x1_values, y1_values],
             [x2_values, y2_values], etc].
         """
         stitched_spectrum = spectra_list[0]
@@ -24,7 +24,7 @@ class LabSpec6SpectraStitch(SpectraStitch):
         for i in range(1, len(spectra_list)):
             stitched_spectrum = self._stitch_spectra(stitched_spectrum, spectra_list[i])
 
-        self._stitched_spectrum: List[List[float]] = stitched_spectrum
+        self._stitched_spectrum: list[list[float]] = stitched_spectrum
 
     @override
     def stitch_with(self, other_stitch: SpectraStitch) -> SpectraStitch:
@@ -48,43 +48,61 @@ class LabSpec6SpectraStitch(SpectraStitch):
         """
         return self._stitched_spectrum
 
-    def _stitch_spectra(self, spectrum1: List[List[float]], spectrum2: List[List[float]]) -> List[List[float]]:
-        fx1, fy1 = spectrum1
-        fx2, fy2 = spectrum2
+    def _stitch_spectra(self, spectrum1: list[list[float]], spectrum2: list[list[float]]) -> list[list[float]]:
+        # Sitches spectra using a weighted average in the overlap region.
+        # This stitching method only works with spectra, not images.
+        # If full CCD data is passed, only the first row is used.
+        fx1 = spectrum1[0]
+        fy1 = spectrum1[1][0]
+        fx2 = spectrum2[0]
+        fy2 = spectrum2[1][0]
 
+        # Convert to numpy arrays.
         x1: ndarray[Any, dtype[Any]] = array(fx1)
         x2: ndarray[Any, dtype[Any]] = array(fx2)
         y1: ndarray[Any, dtype[Any]] = array(fy1)
         y2: ndarray[Any, dtype[Any]] = array(fy2)
 
-        overlap_start = max(x1[0], x2[0])
-        overlap_end = min(x1[-1], x2[-1])
+        # Sort spectra while maintaining x-y correspondence.
+        sort1 = argsort(x1)
+        sort2 = argsort(x2)
 
-        if overlap_start >= overlap_end:
+        # Create sorted views of both arrays.
+        x1_sorted = x1[sort1]
+        y1_sorted = y1[sort1]
+        x2_sorted = x2[sort2]
+        y2_sorted = y2[sort2]
+
+        # Concatenates the spectra if there is no overlap.
+        if x1_sorted[-1] < x2_sorted[0]:
             logger.error(f'No overlap between two spectra: {spectrum1}, {spectrum2}')
-            raise Exception('No overlapping region between spectra')
+            return [concatenate([x1_sorted, x2_sorted]).tolist(), [concatenate([y1_sorted, y2_sorted]).tolist()]]
+        
+        # Finds the index of the largest element in the first spectrum that is less than 
+        # the first element in the second spectrum. 
+        # Defines this as the start of the overlapping region.
+        overlap_start_idx = argmax(x1_sorted >= x2_sorted[0]) - 1
+        overlap_start = x1_sorted[overlap_start_idx]
 
-        mask1 = (x1 >= overlap_start) & (x1 <= overlap_end)
-        mask2 = (x2 >= overlap_start) & (x2 <= overlap_end)
+        # Finds the index of the smallest element in the second spectrum that is greater than
+        # the last element in the first spectrum. 
+        # Defines this as the end of the overlapping region.
+        overlap_end_idx = argmax(x2_sorted > x1_sorted[-1])
+        overlap_end = x2_sorted[overlap_end_idx]
 
-        x1_overlap = x1[mask1]
-        y1_overlap = y1[mask1]
+        # Weighted average of the overlapping region.
+        y_overlap_weighted_average = []
+        for i in range(overlap_start_idx + 1, len(x1_sorted)):
+            idx = argmin(abs(x2_sorted - x1_sorted[i]))
+            y_overlap_weighted_average.append((y1_sorted[i]*(overlap_end-x1_sorted[i])+
+                                    y2_sorted[idx]*(x2_sorted[idx]-overlap_start)) / (overlap_end - overlap_start))
 
-        x2_overlap = x2[mask2]
-        y2_overlap = y2[mask2]
+        x2_after = x2_sorted[overlap_end_idx:]
+        y1_before = y1_sorted[:overlap_start_idx+1]
+        y2_after = y2_sorted[overlap_end_idx:]
 
-        A = (x1_overlap - overlap_start) / (overlap_end - overlap_start)
-        B = (overlap_end - x2_overlap) / (overlap_end - overlap_start)
+        # Combine non-overlapping and overlapping regions.
+        x_combined = concatenate([x1_sorted, x2_after])
+        y_combined = concatenate([y1_before, y_overlap_weighted_average, y2_after])
 
-        y_stitched = (y1_overlap * A + y2_overlap * B) / (A + B)
-
-        x_before = x1[x1 < overlap_start]
-        y_before = y1[x1 < overlap_start]
-
-        x_after = x2[x2 > overlap_end]
-        y_after = y2[x2 > overlap_end]
-
-        x_stitched = concatenate([x_before, x1_overlap, x_after])
-        y_stitched_final = concatenate([y_before, y_stitched, y_after])
-
-        return [x_stitched.tolist(), y_stitched_final.tolist()]
+        return [x_combined.tolist(), [y_combined.tolist()]]
