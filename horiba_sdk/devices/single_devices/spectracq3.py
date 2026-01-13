@@ -39,8 +39,8 @@ class AvailableDataResults(BaseModel):
 
 class AcqSetResults(BaseResults):
     scanCount: int
-    timeStep: int
-    integrationTime: int
+    timeStep: double
+    integrationTime: double
     externalParam: int
 
 
@@ -204,7 +204,7 @@ class SpectrAcq3(AbstractDevice):
         max_hv_voltage: int = response.results['biasVoltage']
         return max_hv_voltage
 
-    async def set_acq_set(self, scan_count: int, time_step: int, integration_time: int, external_param: int) -> None:
+    async def set_acq_set(self, scan_count: int, time_step: double, integration_time: double, external_param: int) -> None:
         """
         Define the acquisition set parameters.
 
