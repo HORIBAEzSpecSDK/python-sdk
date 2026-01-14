@@ -22,8 +22,8 @@ ___
 
 ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️
 
-> [!WARNING]  
-> This SDK is under development and not yet released.
+> [!IMPORTANT]  
+> This SDK is now released. For more information, contact your local HORIBA affiliate office, or visit https://www.horiba.com/int/scientific/products/detail/action/show/Product/ezspec-sdk-6853/.
 
 > [!IMPORTANT]  
 > For this python code to work, the SDK from Horiba has to be purchased, installed and licensed.
@@ -126,7 +126,7 @@ To use this package, the following conditions must be met:
    ```
 # 🔗 Examples
 ## Getting Started
-The files in the folder [examples/asynchronous_examples/](examples/asynchronous_examples) can be used as a starting point for a custom application.
+The files in the folder [examples/](examples/) can be used as a starting point for a custom application.
 
 ## Tests
 The files in the folder [tests/test_single_devices](tests/test_single_devices) can be used to explore further functionality.
@@ -477,9 +477,9 @@ This project is licensed under the terms of the `MIT` license. See [LICENSE](htt
 
 ```bibtex
 @misc{horiba-python-sdk,
-  author = {ZühlkeEngineering},
+  author = {HORIBA Instruments, Inc},
   title = {'horiba-python-sdk' is a package that provides source code for the development with Horiba devices},
-  year = {2023},
+  year = {2026},
   publisher = {GitHub},
   journal = {GitHub repository},
   howpublished = {\url{https://github.com/HORIBAEzSpecSDK/horiba-python-sdk}}
