@@ -99,7 +99,7 @@ To use this package, the following conditions must be met:
    ```
 
 2. Create a file named `center_scan.py` and copy-paste the content of
-   [`examples/ccd/acquisition/center_scan.py`](examples/ccd/acqusition/center_scan.py)
+   [`examples/ccd/acquisition/center_scan.py`](examples/ccd/acquisition/center_scan.py)
 
 3. Install the required library for plotting the graph in the example:
 
