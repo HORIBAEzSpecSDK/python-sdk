@@ -56,14 +56,8 @@ To use this package, the following conditions must be met:
 
 # 🛠️ Getting Started
 
-<details>
-<summary>Video of the steps below</summary>
 
-![first steps in python](docs/source/images/python_first_steps.gif)
-
-</details>
-
-1. (Optional but recommended) Work in a virtual environment:
+0. (Optional but recommended) Work in a virtual environment:
 
    Navigate to the (empty) project folder you want to work and run:
 
@@ -89,7 +83,7 @@ To use this package, the following conditions must be met:
    ```
    </details>
 
-   *Note: do deactivate it, simply run `deactivate`.*
+   *Note: to deactivate it, simply run `deactivate`.*
 
 
 1. Install the sdk:
@@ -105,7 +99,7 @@ To use this package, the following conditions must be met:
    ```
 
 2. Create a file named `center_scan.py` and copy-paste the content of
-   [`examples/asynchronous_examples/center_scan.py`](examples/asynchronous_examples/center_scan.py)
+   [`examples/ccd/acquisition/center_scan.py`](examples/ccd/acqusition/center_scan.py)
 
 3. Install the required library for plotting the graph in the example:
 
