@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import sys
 from types import TracebackType
 from typing import Any, Callable, Optional, final
 
@@ -203,11 +204,22 @@ class WebsocketCommunicator(AbstractCommunicator):
             Exception: When an error occurred with the communication channel
         """
         # send the command with the send function and wait a maximum of 5 seconds for the response
-        await self.send(command)
-        try:
-            async with asyncio.timeout(timeout):
-                response: Response = await self.response()
-        except TimeoutError as te:
-            raise CommunicationException(None, f'Timeout of {timeout}s while waiting for response.') from te
+        # asyncio.timeout added in 3.11 - switch case for pre-3.11 releases:
+        if sys.version_info[1] < 11:
+            await self.send(command)
+            try:
+                response = await asyncio.wait_for(self.response(), timeout)
+            except TimeoutError as te:
+                raise CommunicationException(None, f'Timeout of {timeout}s while waiting for response.') from te
 
-        return response
+            return response
+
+        elif sys.version_info[1] >= 11:
+            await self.send(command)
+            try:
+                async with asyncio.timeout(timeout):
+                    response: Response = await self.response()
+            except TimeoutError as te:
+                raise CommunicationException(None, f'Timeout of {timeout}s while waiting for response.') from te
+
+            return response
