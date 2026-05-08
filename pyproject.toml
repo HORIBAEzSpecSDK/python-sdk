@@ -149,7 +149,7 @@ branch = true
 
 
 [tool.coverage.paths]
-source = "horiba-sdk"
+source = ["horiba-sdk"]
 
 [tool.coverage.report]
 fail_under = 50
