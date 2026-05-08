@@ -205,9 +205,8 @@ class WebsocketCommunicator(AbstractCommunicator):
         # send the command with the send function and wait a maximum of 5 seconds for the response
         await self.send(command)
         try:
-            async with asyncio.timeout(timeout):
-                response: Response = await self.response()
-        except TimeoutError as te:
+            response: Response = await asyncio.wait_for(self.response(), timeout=timeout)
+        except asyncio.TimeoutError as te:
             raise CommunicationException(None, f'Timeout of {timeout}s while waiting for response.') from te
 
         return response
