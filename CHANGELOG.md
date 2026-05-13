@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+  ## [v1.0.1](https://github.com/HORIBAEzSpecSDK/python-sdk/releases/tag/v1.0.1) - 2026-05-08
+
+  <small>[Compare with v1.0.0](https://github.com/HORIBAEzSpecSDK/python-sdk/compare/v1.0.0...v1.0.1)</small>
+
+### FIX
+- WebSocket class: made compatible with python 3.9, was only 3.11+
+
 ## [v0.5.5](https://github.com/HORIBAEzSpecSDK/python-sdk/releases/tag/v0.5.5) - 2025-04-23
 
 <small>[Compare with v0.5.4](https://github.com/HORIBAEzSpecSDK/python-sdk/compare/v0.5.4...v0.5.5)</small>

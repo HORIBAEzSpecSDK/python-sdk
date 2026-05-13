@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "horiba-sdk"
-version = "1.0.0"
+version = "1.0.1"
 description = "'horiba-sdk' is a package that provides source code for the development with Horiba devices"
 readme = "README.md"
 authors = ["HORIBA Instruments, Inc. <EZSpec-SDK.us@horiba.com>"]
@@ -25,6 +25,9 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
 ]
 
 
@@ -71,7 +74,6 @@ sphinx-book-theme = "^1.1.0"
 
 [tool.ruff]
 line-length = 120
-ignore-init-module-imports = true
 
 [tool.ruff.format]
 quote-style = "single"
@@ -95,7 +97,7 @@ select = [
 
 [tool.mypy]
 # https://mypy.readthedocs.io/en/latest/config_file.html#using-a-pyproject-toml-file
-python_version = 3.9
+python_version = "3.9"
 pretty = true
 show_traceback = true
 color_output = true
@@ -143,13 +145,12 @@ addopts = [
 
 [tool.coverage.run]
 source = ["tests"]
-
-[coverage.paths]
-source = "horiba-sdk"
-
-[coverage.run]
 branch = true
 
-[coverage.report]
+
+[tool.coverage.paths]
+source = ["horiba-sdk"]
+
+[tool.coverage.report]
 fail_under = 50
 show_missing = true
