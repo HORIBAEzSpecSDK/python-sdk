@@ -16,6 +16,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Remove broken venv
+      run: rm -rf .venv
+
     - name: Install Poetry
       if: steps.cache-poetry.outputs.cache-hit != 'true'
       run: |
@@ -32,6 +35,10 @@ jobs:
         python -m poetry config virtualenvs.in-project true
       shell: bash
 
+    - name: Fix missing setuptools (pkg_resources)
+      run: |
+        poetry run pip install --upgrade setuptools
+
     - name: Set up cache
       uses: actions/cache@v3
       with:
@@ -42,11 +49,7 @@ jobs:
       run: |
         poetry config virtualenvs.in-project true
         poetry install
-
-    - name: Fix missing setuptools (pkg_resources)
-      run: |
-        poetry run pip install --upgrade setuptools
-    
+        
     - name: Run style checks
       run: |
         make check-codestyle
