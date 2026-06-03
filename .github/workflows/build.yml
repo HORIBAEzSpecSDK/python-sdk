@@ -43,6 +43,10 @@ jobs:
         poetry config virtualenvs.in-project true
         poetry install
 
+    - name: Fix missing setuptools (pkg_resources)
+      run: |
+        poetry run pip install --upgrade setuptools
+    
     - name: Run style checks
       run: |
         make check-codestyle
