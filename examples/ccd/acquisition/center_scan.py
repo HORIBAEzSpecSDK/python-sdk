@@ -35,7 +35,7 @@ async def main():
             await mono.initialize()
         await wait_for_mono(mono)
         current_grating = await mono.get_turret_grating()
-        if await mono.get_turret_grating() != current_grating:
+        if current_grating != Monochromator.Grating.SECOND:
             logger.info('Setting grating to SECOND...')
             await mono.set_turret_grating(Monochromator.Grating.SECOND)
             await wait_for_mono(mono)
@@ -44,7 +44,7 @@ async def main():
         await mono.move_to_target_wavelength(target_wavelength)
         logger.info(f'Moving to target wavelength {target_wavelength}...')
         await wait_for_mono(mono)
-        await mono.set_slit_position(mono.Slit.A, 0)
+        await mono.set_slit_position(mono.Slit.A, 0.05)
         await mono.set_mirror_position(mono.Mirror.ENTRANCE, mono.MirrorPosition.AXIAL)
         logger.info('Setting slit position to A and mirror position to AXIAL...')
         await wait_for_mono(mono)
