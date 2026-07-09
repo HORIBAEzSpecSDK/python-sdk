@@ -172,6 +172,6 @@ async def test_monochromator_shutter_position(fake_device_manager, fake_icl_exe)
         await monochromator.close_shutter()
         # assert
         assert (
-            await monochromator.get_current_shutter_position(Monochromator.Shutter.FIRST)
+            await monochromator.get_current_shutter_position()
             == Monochromator.ShutterPosition.CLOSED
         )
