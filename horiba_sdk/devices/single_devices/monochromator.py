@@ -392,8 +392,8 @@ class Monochromator(AbstractDevice):
         """
         await super()._execute_command('mono_shutterClose', {'index': self._id})
 
-    async def get_shutter_position(self, shutter: Shutter) -> ShutterPosition:
-        """Returns the shutter position.
+    async def get_current_shutter_position(self) -> ShutterPosition:
+        """Returns the current shutter position.
 
         Returns:
             ShutterPosition: OPEN or CLOSED
@@ -402,11 +402,4 @@ class Monochromator(AbstractDevice):
             Exception: When an error occurred on the device side
         """
         response: Response = await super()._execute_command('mono_getShutterStatus', {'index': self._id})
-        # TODO: How many shutters are there?
-        if shutter == self.Shutter.FIRST:
-            return self.ShutterPosition(response.results['shutter 1'])
-        elif shutter == self.Shutter.SECOND:
-            return self.ShutterPosition(response.results['shutter 2'])
-        else:
-            logger.error(f'shutter {shutter} not implemented')
-            raise Exception('shutter not implemented')
+        return self.ShutterPosition(response.results['position'])
